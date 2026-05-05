@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LedgeSoft — Construction Intelligence Platform</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,700;1,300&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --ink:    #0A0F1E;
+  --steel:  #111827;
+  --panel:  #151C2F;
+  --gold:   #F59E0B;
+  --amber:  #FBBF24;
+  --blue:   #3B82F6;
+  --cyan:   #06B6D4;
+  --green:  #10B981;
+  --red:    #EF4444;
+  --muted:  #6B7280;
+  --line:   rgba(255,255,255,0.06);
+  --glow:   rgba(245,158,11,0.15);
+  --white:  #F9FAFB;
+  --glass:  rgba(255,255,255,0.04);
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--ink);
+  color: var(--white);
+  overflow-x: hidden;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor {
+  width: 10px; height: 10px;
+  background: var(--gold);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9999;
+  transition: transform 0.1s;
+  mix-blend-mode: difference;
+}
+.cursor-ring {
+  width: 36px; height: 36px;
+  border: 1.5px solid var(--gold);
+  border-radius: 50%;
+  position: fixed; top: 0; left: 0;
+  pointer-events: none;
+  z-index: 9998;
+  transition: all 0.18s ease;
+  opacity: 0.5;
+}
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed; inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 1000;
+  opacity: 0.4;
+}
+
+/* ── NAV ── */
+nav {
+  position: fixed; top: 0; left: 0; right: 0;
+  z-index: 500;
+  padding: 20px 60px;
+  display: flex; align-items: center; justify-content: space-between;
+  background: rgba(10,15,30,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--line);
+}
+.nav-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  text-decoration: none;
+}
+.nav-logo span { color: var(--white); }
+.nav-badge {
+  background: rgba(245,158,11,0.15);
+  border: 1px solid rgba(245,158,11,0.4);
+  color: var(--gold);
+  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 2px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  animation: pulse-badge 2s infinite;
+}
+@keyframes pulse-badge {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+.nav-links { display: flex; gap: 36px; list-style: none; }
+.nav-links a {
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+.nav-links a:hover { color: var(--white); }
+.nav-cta {
+  background: var(--gold);
+  color: var(--ink) !important;
+  padding: 8px 22px;
+  border-radius: 6px;
+  font-weight: 700 !important;
+  transition: transform 0.2s, box-shadow 0.2s !important;
+}
+.nav-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 25px rgba(245,158,11,0.4) !important; }
+
+/* ── HERO ── */
+#hero {
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  position: relative;
+  padding: 120px 60px 80px;
+  overflow: hidden;
+}
+.hero-grid {
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(245,158,11,0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(245,158,11,0.04) 1px, transparent 1px);
+  background-size: 60px 60px;
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, black 30%, transparent 100%);
+}
+.hero-glow {
+  position: absolute;
+  width: 700px; height: 700px;
+  background: radial-gradient(circle, rgba(245,158,11,0.12) 0%, transparent 70%);
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  animation: glow-pulse 4s ease-in-out infinite;
+}
+@keyframes glow-pulse {
+  0%,100% { transform: translate(-50%,-50%) scale(1); opacity: 0.8; }
+  50% { transform: translate(-50%,-50%) scale(1.1); opacity: 1; }
+}
+.hero-eyebrow {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  margin-bottom: 24px;
+  opacity: 0;
+  animation: fade-up 0.8s ease forwards 0.2s;
+  display: flex; align-items: center; gap: 12px;
+}
+.hero-eyebrow::before, .hero-eyebrow::after {
+  content: '';
+  width: 40px; height: 1px;
+  background: var(--gold);
+  opacity: 0.5;
+}
+.hero-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(80px, 14vw, 160px);
+  line-height: 0.9;
+  text-align: center;
+  letter-spacing: 4px;
+  opacity: 0;
+  animation: fade-up 0.8s ease forwards 0.4s;
+  position: relative;
+}
+.hero-title .gold { color: var(--gold); }
+.hero-title .outline {
+  -webkit-text-stroke: 1px rgba(255,255,255,0.2);
+  color: transparent;
+}
+.hero-sub {
+  font-size: 18px;
+  font-weight: 300;
+  color: rgba(249,250,251,0.6);
+  max-width: 520px;
+  text-align: center;
+  line-height: 1.7;
+  margin-top: 28px;
+  opacity: 0;
+  animation: fade-up 0.8s ease forwards 0.6s;
+}
+.hero-actions {
+  display: flex; gap: 16px; margin-top: 48px;
+  opacity: 0;
+  animation: fade-up 0.8s ease forwards 0.8s;
+}
+.btn-primary {
+  background: var(--gold);
+  color: var(--ink);
+  border: none;
+  padding: 16px 40px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-primary:hover { transform: translateY(-3px); box-shadow: 0 16px 40px rgba(245,158,11,0.4); }
+.btn-secondary {
+  background: transparent;
+  color: var(--white);
+  border: 1px solid rgba(255,255,255,0.2);
+  padding: 16px 40px;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-decoration: none;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.btn-secondary:hover { border-color: var(--gold); color: var(--gold); transform: translateY(-3px); }
+
+.hero-stats {
+  display: flex; gap: 60px; margin-top: 80px;
+  opacity: 0;
+  animation: fade-up 0.8s ease forwards 1s;
+  border-top: 1px solid var(--line);
+  padding-top: 40px;
+}
+.stat { text-align: center; }
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  color: var(--gold);
+  line-height: 1;
+}
+.stat-label {
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  margin-top: 6px;
+  text-transform: uppercase;
+}
+
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(30px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ── DEV BANNER ── */
+.dev-banner {
+  background: linear-gradient(90deg, var(--steel), rgba(245,158,11,0.1), var(--steel));
+  border-top: 1px solid rgba(245,158,11,0.3);
+  border-bottom: 1px solid rgba(245,158,11,0.3);
+  padding: 14px 0;
+  overflow: hidden;
+  position: relative;
+}
+.dev-banner-track {
+  display: flex;
+  animation: marquee 30s linear infinite;
+  white-space: nowrap;
+  gap: 60px;
+}
+.dev-banner-item {
+  display: inline-flex; align-items: center; gap: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  text-transform: uppercase;
+  opacity: 0.8;
+  flex-shrink: 0;
+}
+.dev-banner-item .dot {
+  width: 6px; height: 6px;
+  background: var(--gold);
+  border-radius: 50%;
+  animation: pulse-badge 1.5s infinite;
+}
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ── SECTIONS SHARED ── */
+section { padding: 120px 60px; }
+.section-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: var(--gold);
+  text-transform: uppercase;
+  margin-bottom: 16px;
+  opacity: 0.8;
+}
+.section-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: clamp(48px, 7vw, 80px);
+  line-height: 1;
+  letter-spacing: 2px;
+}
+.section-title .accent { color: var(--gold); }
+.section-sub {
+  font-size: 16px;
+  font-weight: 300;
+  color: rgba(249,250,251,0.55);
+  max-width: 480px;
+  line-height: 1.8;
+  margin-top: 16px;
+}
+
+/* ── MOCK DASHBOARD ── */
+#demo {
+  background: var(--steel);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 80px 60px;
+}
+.demo-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.demo-header { margin-bottom: 40px; }
+.mock-app {
+  background: var(--panel);
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,0.08);
+  overflow: hidden;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.6), 0 0 0 1px rgba(245,158,11,0.1);
+  animation: float 6s ease-in-out infinite;
+}
+@keyframes float {
+  0%,100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.mock-topbar {
+  background: rgba(0,0,0,0.3);
+  padding: 12px 20px;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.mock-dot { width: 12px; height: 12px; border-radius: 50%; }
+.mock-dot.r { background: #FF5F57; }
+.mock-dot.y { background: #FFBD2E; }
+.mock-dot.g { background: #28CA41; }
+.mock-url {
+  flex: 1;
+  background: rgba(255,255,255,0.05);
+  border-radius: 6px;
+  padding: 5px 16px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 11px;
+  color: var(--muted);
+  margin: 0 16px;
+  text-align: center;
+}
+.mock-body {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: 480px;
+}
+.mock-sidebar {
+  background: rgba(0,0,0,0.25);
+  border-right: 1px solid var(--line);
+  padding: 24px 0;
+}
+.mock-logo-sm {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 3px;
+  color: var(--gold);
+  padding: 0 20px 20px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 16px;
+}
+.mock-nav-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 20px;
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  border-left: 2px solid transparent;
+}
+.mock-nav-item:hover, .mock-nav-item.active {
+  color: var(--white);
+  background: rgba(245,158,11,0.08);
+  border-left-color: var(--gold);
+}
+.mock-nav-item .icon { font-size: 14px; }
+.mock-content { padding: 24px; overflow: hidden; }
+.mock-kpi-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mock-kpi {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 14px;
+}
+.mock-kpi-val {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  line-height: 1;
+}
+.mock-kpi-val.green { color: var(--green); }
+.mock-kpi-val.red { color: var(--red); }
+.mock-kpi-val.blue { color: var(--blue); }
+.mock-kpi-val.gold { color: var(--gold); }
+.mock-kpi-label { font-size: 10px; color: var(--muted); margin-top: 4px; letter-spacing: 1px; }
+.mock-row2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mock-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+}
+.mock-card-title {
+  font-size: 10px;
+  letter-spacing: 2px;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.mock-bar-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+.mock-bar-label { font-size: 10px; color: var(--muted); width: 60px; flex-shrink: 0; }
+.mock-bar-track { flex: 1; height: 6px; background: rgba(255,255,255,0.06); border-radius: 3px; overflow: hidden; }
+.mock-bar-fill { height: 100%; border-radius: 3px; }
+.mock-bar-val { font-size: 10px; color: var(--white); width: 45px; text-align: right; flex-shrink: 0; }
+.mock-table-head {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr 0.8fr;
+  padding: 6px 0;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+.mock-table-head span { font-size: 9px; letter-spacing: 1px; color: var(--muted); text-transform: uppercase; }
+.mock-table-row {
+  display: grid;
+  grid-template-columns: 1fr 1.5fr 1fr 0.8fr;
+  padding: 7px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.03);
+  font-size: 11px;
+  color: rgba(249,250,251,0.7);
+}
+.mock-table-row .badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
+.badge.income { background: rgba(16,185,129,0.15); color: var(--green); }
+.badge.expense { background: rgba(239,68,68,0.12); color: var(--red); }
+.badge.active { background: rgba(59,130,246,0.15); color: var(--blue); }
+
+/* ── FEATURES GRID ── */
+#features {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 120px 60px;
+}
+.features-header { margin-bottom: 70px; }
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.feature-card {
+  background: var(--ink);
+  padding: 40px;
+  transition: background 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.feature-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0% 0%, rgba(245,158,11,0.06), transparent 60%);
+  opacity: 0;
+  transition: opacity 0.4s;
+}
+.feature-card:hover { background: var(--panel); }
+.feature-card:hover::before { opacity: 1; }
+.feature-icon {
+  width: 48px; height: 48px;
+  background: rgba(245,158,11,0.1);
+  border: 1px solid rgba(245,158,11,0.2);
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px;
+  margin-bottom: 20px;
+  transition: all 0.3s;
+}
+.feature-card:hover .feature-icon {
+  background: rgba(245,158,11,0.2);
+  transform: scale(1.1);
+}
+.feature-name {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 10px;
+  color: var(--white);
+}
+.feature-desc {
+  font-size: 13px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.feature-tag {
+  display: inline-block;
+  margin-top: 16px;
+  font-size: 9px;
+  letter-spacing: 2px;
+  padding: 3px 10px;
+  border-radius: 20px;
+  text-transform: uppercase;
+  font-family: 'JetBrains Mono', monospace;
+}
+.tag-live { background: rgba(16,185,129,0.12); color: var(--green); border: 1px solid rgba(16,185,129,0.25); }
+.tag-coming { background: rgba(245,158,11,0.1); color: var(--gold); border: 1px solid rgba(245,158,11,0.25); }
+
+/* ── ROADMAP ── */
+#roadmap {
+  background: var(--steel);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+}
+.roadmap-inner { max-width: 1200px; margin: 0 auto; }
+.roadmap-track {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0;
+  position: relative;
+  margin-top: 60px;
+}
+.roadmap-track::before {
+  content: '';
+  position: absolute;
+  top: 28px; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--gold), rgba(245,158,11,0.2));
+  z-index: 0;
+}
+.roadmap-phase {
+  position: relative;
+  z-index: 1;
+  padding: 0 20px;
+}
+.phase-dot {
+  width: 56px; height: 56px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  margin-bottom: 20px;
+  position: relative;
+}
+.phase-dot.done {
+  background: var(--gold);
+  color: var(--ink);
+  box-shadow: 0 0 30px rgba(245,158,11,0.5);
+}
+.phase-dot.active {
+  background: rgba(245,158,11,0.15);
+  border: 2px solid var(--gold);
+  color: var(--gold);
+  animation: ring-pulse 2s infinite;
+}
+.phase-dot.soon {
+  background: rgba(255,255,255,0.04);
+  border: 2px solid rgba(255,255,255,0.15);
+  color: var(--muted);
+}
+@keyframes ring-pulse {
+  0%,100% { box-shadow: 0 0 0 0 rgba(245,158,11,0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(245,158,11,0); }
+}
+.phase-label {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 2px;
+  color: var(--gold);
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+.phase-title {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  color: var(--white);
+}
+.phase-item {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 2;
+  display: flex; align-items: flex-start; gap: 6px;
+}
+.phase-item .check { color: var(--green); flex-shrink: 0; }
+.phase-item .soon-dot { color: var(--muted); flex-shrink: 0; }
+
+/* ── HOW IT WORKS ── */
+#how {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+.steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 2px;
+  margin-top: 60px;
+  background: var(--line);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  overflow: hidden;
+}
+.step {
+  background: var(--ink);
+  padding: 48px 40px;
+  position: relative;
+}
+.step-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 80px;
+  color: rgba(245,158,11,0.08);
+  line-height: 1;
+  position: absolute;
+  top: 16px; right: 24px;
+  letter-spacing: 2px;
+}
+.step-icon { font-size: 32px; margin-bottom: 20px; }
+.step-title {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+.step-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.8;
+}
+
+/* ── PRICING ── */
+#pricing {
+  background: var(--steel);
+  border-top: 1px solid var(--line);
+}
+.pricing-inner { max-width: 900px; margin: 0 auto; text-align: center; }
+.pricing-card {
+  background: var(--panel);
+  border: 1px solid rgba(245,158,11,0.3);
+  border-radius: 20px;
+  padding: 60px;
+  margin-top: 60px;
+  position: relative;
+  overflow: hidden;
+}
+.pricing-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--gold), transparent);
+}
+.pricing-badge {
+  display: inline-block;
+  background: rgba(245,158,11,0.15);
+  border: 1px solid rgba(245,158,11,0.3);
+  color: var(--gold);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  padding: 6px 16px;
+  border-radius: 20px;
+  margin-bottom: 28px;
+  text-transform: uppercase;
+}
+.pricing-amount {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 100px;
+  color: var(--gold);
+  line-height: 1;
+  letter-spacing: 4px;
+}
+.pricing-amount span { font-size: 32px; vertical-align: top; margin-top: 20px; display: inline-block; }
+.pricing-amount sub { font-size: 20px; color: var(--muted); }
+.pricing-note {
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 12px;
+}
+.pricing-features {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 40px 0;
+  text-align: left;
+}
+.pricing-feature {
+  display: flex; align-items: center; gap: 10px;
+  font-size: 13px;
+  color: rgba(249,250,251,0.8);
+}
+.pricing-feature .tick { color: var(--gold); font-size: 14px; }
+
+/* ── TECH STACK ── */
+#tech {
+  max-width: 1200px; margin: 0 auto;
+}
+.tech-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 16px;
+  margin-top: 60px;
+}
+.tech-chip {
+  background: var(--glass);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  transition: all 0.3s;
+  cursor: default;
+}
+.tech-chip:hover {
+  border-color: rgba(245,158,11,0.3);
+  background: rgba(245,158,11,0.05);
+  transform: translateY(-4px);
+}
+.tech-chip-icon { font-size: 28px; margin-bottom: 8px; }
+.tech-chip-name { font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+
+/* ── ABOUT ── */
+#about {
+  background: var(--steel);
+  border-top: 1px solid var(--line);
+}
+.about-inner {
+  max-width: 1200px; margin: 0 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 80px;
+  align-items: center;
+}
+.about-left .about-quote {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  line-height: 1.1;
+  color: var(--white);
+  margin: 24px 0;
+  letter-spacing: 1px;
+}
+.about-quote .accent { color: var(--gold); }
+.about-body {
+  font-size: 14px;
+  font-weight: 300;
+  color: var(--muted);
+  line-height: 1.9;
+}
+.about-right {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  padding: 40px;
+}
+.about-dev {
+  display: flex; align-items: center; gap: 16px;
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--line);
+}
+.dev-avatar {
+  width: 56px; height: 56px;
+  background: linear-gradient(135deg, var(--gold), var(--amber));
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  color: var(--ink);
+  flex-shrink: 0;
+}
+.dev-name { font-size: 16px; font-weight: 700; }
+.dev-title { font-size: 12px; color: var(--muted); margin-top: 2px; }
+.dev-stat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.dev-stat {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 16px;
+}
+.dev-stat-num {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 32px;
+  color: var(--gold);
+}
+.dev-stat-label { font-size: 10px; color: var(--muted); letter-spacing: 1px; margin-top: 2px; }
+
+/* ── FOOTER ── */
+footer {
+  background: var(--ink);
+  border-top: 1px solid var(--line);
+  padding: 60px;
+  text-align: center;
+}
+.footer-logo {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 48px;
+  letter-spacing: 6px;
+  color: var(--gold);
+  margin-bottom: 16px;
+  display: block;
+}
+.footer-sub {
+  font-size: 12px;
+  color: var(--muted);
+  letter-spacing: 2px;
+  margin-bottom: 32px;
+}
+.footer-contact {
+  display: flex; justify-content: center; gap: 40px;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+}
+.footer-link {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 13px;
+  color: var(--muted);
+  text-decoration: none;
+  transition: color 0.2s;
+}
+.footer-link:hover { color: var(--gold); }
+.footer-copy {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+  color: rgba(107,114,128,0.5);
+  letter-spacing: 2px;
+}
+
+/* ── SCROLL REVEAL ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.7s ease, transform 0.7s ease;
+}
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 900px) {
+  nav { padding: 16px 20px; }
+  .nav-links { display: none; }
+  section { padding: 80px 20px; }
+  #hero { padding: 120px 20px 60px; }
+  .hero-stats { gap: 30px; }
+  .features-grid { grid-template-columns: 1fr; }
+  .roadmap-track { grid-template-columns: 1fr 1fr; }
+  .steps { grid-template-columns: 1fr; }
+  .tech-grid { grid-template-columns: repeat(3, 1fr); }
+  .about-inner { grid-template-columns: 1fr; gap: 40px; }
+  .mock-body { grid-template-columns: 1fr; }
+  .mock-sidebar { display: none; }
+  .mock-kpi-row { grid-template-columns: 1fr 1fr; }
+  .pricing-features { grid-template-columns: 1fr; }
+  footer { padding: 40px 20px; }
+  .footer-contact { flex-direction: column; align-items: center; gap: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">LEDGE<span>SOFT</span></a>
+  <div class="nav-badge">● IN DEVELOPMENT</div>
+  <ul class="nav-links">
+    <li><a href="#demo">Preview</a></li>
+    <li><a href="#features">Features</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#pricing">Pricing</a></li>
+    <li><a href="#about">About</a></li>
+    <li><a href="mailto:ajaysharitra@gmail.com" class="nav-cta">Get Early Access</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+
+  <div class="hero-eyebrow">Version 0.1g &nbsp;&bull;&nbsp; Closed Development &nbsp;&bull;&nbsp; Tirunelveli, India</div>
+
+  <h1 class="hero-title">
+    <span class="gold">LEDGE</span><br/>
+    <span class="outline">SOFT</span>
+  </h1>
+
+  <p class="hero-sub">
+    The complete financial intelligence platform built for construction companies — track projects, manage ledgers, visualize profits, and run your business smarter.
+  </p>
+
+  <div class="hero-actions">
+    <a href="mailto:ajaysharitra@gmail.com" class="btn-primary">⚡ Request Early Access</a>
+    <a href="#demo" class="btn-secondary">▶ View Live Preview</a>
+  </div>
+
+  <div class="hero-stats">
+    <div class="stat">
+      <div class="stat-num">8+</div>
+      <div class="stat-label">DB Tables</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">15</div>
+      <div class="stat-label">API Endpoints</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">0.1g</div>
+      <div class="stat-label">Current Build</div>
+    </div>
+    <div class="stat">
+      <div class="stat-num">∞</div>
+      <div class="stat-label">Projects Supported</div>
+    </div>
+  </div>
+</section>
+
+<!-- DEV BANNER -->
+<div class="dev-banner">
+  <div class="dev-banner-track" id="bannerTrack">
+    <div class="dev-banner-item"><span class="dot"></span> Active Development</div>
+    <div class="dev-banner-item"><span class="dot"></span> Excel Export — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> P&L Dashboard — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> Multi-User RBAC — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> REST API — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> Online Hosting — Coming Soon</div>
+    <div class="dev-banner-item"><span class="dot"></span> Mobile App — Planned</div>
+    <div class="dev-banner-item"><span class="dot"></span> Invoice Generator — Planned</div>
+    <!-- duplicate for seamless loop -->
+    <div class="dev-banner-item"><span class="dot"></span> Active Development</div>
+    <div class="dev-banner-item"><span class="dot"></span> Excel Export — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> P&L Dashboard — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> Multi-User RBAC — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> REST API — Live</div>
+    <div class="dev-banner-item"><span class="dot"></span> Online Hosting — Coming Soon</div>
+    <div class="dev-banner-item"><span class="dot"></span> Mobile App — Planned</div>
+    <div class="dev-banner-item"><span class="dot"></span> Invoice Generator — Planned</div>
+  </div>
+</div>
+
+<!-- MOCK DASHBOARD DEMO -->
+<div id="demo">
+  <div class="demo-inner">
+    <div class="demo-header reveal">
+      <div class="section-label">// live preview</div>
+      <h2 class="section-title">See It In <span class="accent">Action</span></h2>
+      <p class="section-sub">A real look at the LedgeSoft dashboard — exactly what your team sees every day.</p>
+    </div>
+
+    <div class="mock-app reveal">
+      <div class="mock-topbar">
+        <div class="mock-dot r"></div>
+        <div class="mock-dot y"></div>
+        <div class="mock-dot g"></div>
+        <div class="mock-url">localhost:5000 — LedgeSoft v0.1g</div>
+      </div>
+      <div class="mock-body">
+        <div class="mock-sidebar">
+          <div class="mock-logo-sm">LEDGESOFT</div>
+          <div class="mock-nav-item active"><span class="icon">📊</span> Dashboard</div>
+          <div class="mock-nav-item"><span class="icon">🏗️</span> Projects</div>
+          <div class="mock-nav-item"><span class="icon">📒</span> Ledger</div>
+          <div class="mock-nav-item"><span class="icon">📈</span> Reports</div>
+          <div class="mock-nav-item"><span class="icon">👥</span> Users</div>
+          <div class="mock-nav-item"><span class="icon">⚙️</span> Services</div>
+          <div class="mock-nav-item"><span class="icon">📤</span> Export</div>
+        </div>
+        <div class="mock-content">
+          <div class="mock-kpi-row">
+            <div class="mock-kpi">
+              <div class="mock-kpi-val green">₹1,30,000</div>
+              <div class="mock-kpi-label">TOTAL INCOME</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-val red">₹84,500</div>
+              <div class="mock-kpi-label">TOTAL EXPENSE</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-val gold">₹45,500</div>
+              <div class="mock-kpi-label">NET PROFIT</div>
+            </div>
+            <div class="mock-kpi">
+              <div class="mock-kpi-val blue">4</div>
+              <div class="mock-kpi-label">ACTIVE PROJECTS</div>
+            </div>
+          </div>
+
+          <div class="mock-row2">
+            <div class="mock-card">
+              <div class="mock-card-title">Expense by Category</div>
+              <div class="mock-bar-row">
+                <div class="mock-bar-label">Mason</div>
+                <div class="mock-bar-track"><div class="mock-bar-fill" style="width:75%;background:#3B82F6"></div></div>
+                <div class="mock-bar-val">₹32,000</div>
+              </div>
+              <div class="mock-bar-row">
+                <div class="mock-bar-label">Material</div>
+                <div class="mock-bar-track"><div class="mock-bar-fill" style="width:55%;background:#F59E0B"></div></div>
+                <div class="mock-bar-val">₹24,500</div>
+              </div>
+              <div class="mock-bar-row">
+                <div class="mock-bar-label">Electrician</div>
+                <div class="mock-bar-track"><div class="mock-bar-fill" style="width:35%;background:#10B981"></div></div>
+                <div class="mock-bar-val">₹15,800</div>
+              </div>
+              <div class="mock-bar-row">
+                <div class="mock-bar-label">Plumber</div>
+                <div class="mock-bar-track"><div class="mock-bar-fill" style="width:20%;background:#8B5CF6"></div></div>
+                <div class="mock-bar-val">₹8,200</div>
+              </div>
+              <div class="mock-bar-row">
+                <div class="mock-bar-label">Transport</div>
+                <div class="mock-bar-track"><div class="mock-bar-fill" style="width:10%;background:#EF4444"></div></div>
+                <div class="mock-bar-val">₹4,000</div>
+              </div>
+            </div>
+
+            <div class="mock-card">
+              <div class="mock-card-title">Recent Ledger Entries</div>
+              <div class="mock-table-head">
+                <span>Project</span>
+                <span>Description</span>
+                <span>Type</span>
+                <span>Amount</span>
+              </div>
+              <div class="mock-table-row">
+                <span>PROJ001</span>
+                <span>Foundation work</span>
+                <span><span class="badge expense">Expense</span></span>
+                <span style="color:#EF4444">₹12,000</span>
+              </div>
+              <div class="mock-table-row">
+                <span>PROJ002</span>
+                <span>Client advance</span>
+                <span><span class="badge income">Income</span></span>
+                <span style="color:#10B981">₹50,000</span>
+              </div>
+              <div class="mock-table-row">
+                <span>PROJ001</span>
+                <span>Cement batch</span>
+                <span><span class="badge expense">Expense</span></span>
+                <span style="color:#EF4444">₹8,500</span>
+              </div>
+              <div class="mock-table-row">
+                <span>PROJ003</span>
+                <span>Milestone payment</span>
+                <span><span class="badge income">Income</span></span>
+                <span style="color:#10B981">₹80,000</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section id="features">
+  <div class="features-header reveal">
+    <div class="section-label">// capabilities</div>
+    <h2 class="section-title">Everything Your<br/><span class="accent">Business Needs</span></h2>
+    <p class="section-sub">Built feature by feature based on real construction company workflows.</p>
+  </div>
+
+  <div class="features-grid reveal">
+
+    <div class="feature-card">
+      <div class="feature-icon">📊</div>
+      <div class="feature-name">Profit & Loss Dashboard</div>
+      <div class="feature-desc">Visualize income vs expenses across all projects simultaneously. Multi-parameter charts give instant financial clarity without opening a single spreadsheet.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🏗️</div>
+      <div class="feature-name">Project Management</div>
+      <div class="feature-desc">Track unlimited projects with client details, location, start dates, and real-time status — Active, On Hold, or Completed. Full CRUD with one click.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📒</div>
+      <div class="feature-name">Smart Ledger</div>
+      <div class="feature-desc">Record every income and expense entry with category, description, date, and project linkage. Cascaded deletion keeps your database clean and consistent.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📤</div>
+      <div class="feature-name">Excel Export</div>
+      <div class="feature-desc">Export your complete ledger or project-specific reports directly to Excel with one click. Share professional financial reports with clients instantly.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">👥</div>
+      <div class="feature-name">Multi-User RBAC</div>
+      <div class="feature-desc">Admin and standard user roles with clearly defined permissions. Two-step user creation wizard with SHA-256 password hashing and admin confirmation layer.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🔧</div>
+      <div class="feature-name">Dynamic Service Categories</div>
+      <div class="feature-desc">Add, remove, and manage service types at runtime — Mason, Electrician, Plumber, Material, Transport, and any custom categories your business needs.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📋</div>
+      <div class="feature-name">Full Audit Trail</div>
+      <div class="feature-desc">Every team assignment, change, and action is permanently logged with timestamp and responsible user. Know exactly who did what and when.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">⚡</div>
+      <div class="feature-name">REST API</div>
+      <div class="feature-desc">15 fully documented endpoints powering real-time AJAX updates across the dashboard — no page reloads, instant feedback on every action.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🛡️</div>
+      <div class="feature-name">Data Integrity Engine</div>
+      <div class="feature-desc">Foreign key enforcement, type constraints, automatic schema migration, and startup integrity checks. Your data is always consistent and protected.</div>
+      <span class="feature-tag tag-live">✓ Live</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🌐</div>
+      <div class="feature-name">Online Cloud Hosting</div>
+      <div class="feature-desc">Access LedgeSoft from anywhere — site office, home, or client meetings. Full cloud deployment with secure login and real-time sync coming soon.</div>
+      <span class="feature-tag tag-coming">⚡ Coming Soon</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">📱</div>
+      <div class="feature-name">Mobile App</div>
+      <div class="feature-desc">Native Android app so site supervisors can log expenses and update project status directly from the construction site without a laptop.</div>
+      <span class="feature-tag tag-coming">⚡ Planned</span>
+    </div>
+
+    <div class="feature-card">
+      <div class="feature-icon">🧾</div>
+      <div class="feature-name">Invoice Generator</div>
+      <div class="feature-desc">Generate professional GST-ready PDF invoices directly from project ledger entries. Send to clients with one click. Planned for v0.2.</div>
+      <span class="feature-tag tag-coming">⚡ Planned</span>
+    </div>
+
+  </div>
+</section>
+
+<!-- ROADMAP -->
+<section id="roadmap">
+  <div class="roadmap-inner">
+    <div class="reveal">
+      <div class="section-label">// development roadmap</div>
+      <h2 class="section-title">Where We're <span class="accent">Headed</span></h2>
+      <p class="section-sub">Transparent progress. Every version ships real features.</p>
+    </div>
+
+    <div class="roadmap-track reveal">
+
+      <div class="roadmap-phase">
+        <div class="phase-dot done">V1</div>
+        <div class="phase-label">Completed</div>
+        <div class="phase-title">Foundation</div>
+        <div class="phase-item"><span class="check">✓</span> Project CRUD</div>
+        <div class="phase-item"><span class="check">✓</span> Ledger System</div>
+        <div class="phase-item"><span class="check">✓</span> User Auth & RBAC</div>
+        <div class="phase-item"><span class="check">✓</span> Service Categories</div>
+        <div class="phase-item"><span class="check">✓</span> REST API (15 endpoints)</div>
+        <div class="phase-item"><span class="check">✓</span> Excel Export</div>
+        <div class="phase-item"><span class="check">✓</span> P&L Dashboard</div>
+      </div>
+
+      <div class="roadmap-phase">
+        <div class="phase-dot active">V2</div>
+        <div class="phase-label">In Progress</div>
+        <div class="phase-title">Production Ready</div>
+        <div class="phase-item"><span class="check">✓</span> Debug mode off</div>
+        <div class="phase-item"><span class="check">✓</span> Daily backup system</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Cloud VPS hosting</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> HTTPS & SSL</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> PDF report export</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Search & filter ledger</div>
+      </div>
+
+      <div class="roadmap-phase">
+        <div class="phase-dot soon">V3</div>
+        <div class="phase-label">Planned</div>
+        <div class="phase-title">Business Suite</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Invoice generator</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> GST calculation</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Staff salary tracker</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Material inventory</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Client portal</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> WhatsApp notifications</div>
+      </div>
+
+      <div class="roadmap-phase">
+        <div class="phase-dot soon">V4</div>
+        <div class="phase-label">Future</div>
+        <div class="phase-title">Scale & Mobile</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Android app</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Offline sync</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Multi-company support</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> AI spend insights</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Bank reconciliation</div>
+        <div class="phase-item"><span class="soon-dot">◎</span> Tally integration</div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div id="how" style="max-width:1200px;margin:0 auto;">
+    <div class="reveal">
+      <div class="section-label">// how it works</div>
+      <h2 class="section-title">Up & Running in <span class="accent">Minutes</span></h2>
+      <p class="section-sub">No IT team needed. If you have a computer, you're ready.</p>
+    </div>
+
+    <div class="steps reveal">
+      <div class="step">
+        <div class="step-num">01</div>
+        <div class="step-icon">📦</div>
+        <div class="step-title">Install on Your Computer</div>
+        <div class="step-desc">One-time setup on any Windows or Linux machine. No internet required for daily use. We handle the installation for you as part of the package.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">02</div>
+        <div class="step-icon">🏗️</div>
+        <div class="step-title">Add Your Projects</div>
+        <div class="step-desc">Enter your active construction projects with client name, location, and start date. Takes under 2 minutes per project. Your team is ready to start logging.</div>
+      </div>
+      <div class="step">
+        <div class="step-num">03</div>
+        <div class="step-icon">📊</div>
+        <div class="step-title">Track & Grow</div>
+        <div class="step-desc">Log income and expenses daily. Watch your P&L dashboard update in real time. Export reports. Know your numbers. Run a smarter business.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PRICING -->
+<section id="pricing">
+  <div class="pricing-inner reveal">
+    <div class="section-label">// simple pricing</div>
+    <h2 class="section-title">One Price.<br/><span class="accent">No Surprises.</span></h2>
+    <p class="section-sub" style="margin:0 auto;text-align:center;">Built for small construction businesses, priced to match.</p>
+
+    <div class="pricing-card">
+      <div class="pricing-badge">🎉 Early Adopter Rate — Limited Slots</div>
+      <div class="pricing-amount"><span>₹</span>2,000<sub> one-time</sub></div>
+      <p class="pricing-note">Full software license + installation + 6 months free support included</p>
+
+      <div class="pricing-features">
+        <div class="pricing-feature"><span class="tick">◆</span> Unlimited projects & ledger entries</div>
+        <div class="pricing-feature"><span class="tick">◆</span> P&L dashboard with data visualization</div>
+        <div class="pricing-feature"><span class="tick">◆</span> Excel export for all reports</div>
+        <div class="pricing-feature"><span class="tick">◆</span> Multi-user access with role control</div>
+        <div class="pricing-feature"><span class="tick">◆</span> Professional installation on-site</div>
+        <div class="pricing-feature"><span class="tick">◆</span> 6 months free support & updates</div>
+        <div class="pricing-feature"><span class="tick">◆</span> Daily backup system setup</div>
+        <div class="pricing-feature"><span class="tick">◆</span> WhatsApp support — direct developer access</div>
+      </div>
+
+      <a href="mailto:ajaysharitra@gmail.com" class="btn-primary" style="font-size:16px;padding:18px 60px;">
+        ⚡ Get LedgeSoft Now
+      </a>
+
+      <p style="font-size:12px;color:var(--muted);margin-top:20px;">
+        Want cloud hosting? Migration available — pricing based on requirements.<br/>
+        Annual maintenance plan available after 6-month free period.
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- TECH STACK -->
+<section id="tech">
+  <div class="reveal">
+    <div class="section-label">// built with</div>
+    <h2 class="section-title">Solid <span class="accent">Technology</span></h2>
+    <p class="section-sub">No bloat. Every tool chosen for reliability and performance.</p>
+  </div>
+
+  <div class="tech-grid reveal">
+    <div class="tech-chip"><div class="tech-chip-icon">🐍</div><div class="tech-chip-name">Python</div></div>
+    <div class="tech-chip"><div class="tech-chip-icon">🌶️</div><div class="tech-chip-name">Flask</div></div>
+    <div class="tech-chip"><div class="tech-chip-icon">🗄️</div><div class="tech-chip-name">SQLite</div></div>
+    <div class="tech-chip"><div class="tech-chip-icon">🌐</div><div class="tech-chip-name">HTML5</div></div>
+    <div class="tech-chip"><div class="tech-chip-icon">🎨</div><div class="tech-chip-name">CSS3</div></div>
+    <div class="tech-chip"><div class="tech-chip-icon">⚡</div><div class="tech-chip-name">JavaScript</div></div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="about-inner reveal">
+    <div class="about-left">
+      <div class="section-label">// the developer</div>
+      <div class="about-quote">
+        Built by someone who <span class="accent">actually knows</span> what small businesses need.
+      </div>
+      <p class="about-body">
+        LedgeSoft was born when a real construction company needed a real solution. Not a ₹50,000/year subscription. Not a complicated ERP. Just a clean, fast tool that works on the computer you already have.
+        <br/><br/>
+        Built and maintained by Ajay Sharitra — Network Engineer, IT infrastructure specialist, and developer based in Tirunelveli, Tamil Nadu. Every feature in LedgeSoft was added because a real business needed it.
+        <br/><br/>
+        This is local software, built with local knowledge, for local businesses. With direct developer support — not a call center.
+      </p>
+    </div>
+    <div class="about-right">
+      <div class="about-dev">
+        <div class="dev-avatar">AS</div>
+        <div>
+          <div class="dev-name">Ajay Sharitra.B</div>
+          <div class="dev-title">Network Engineer & Software Developer · Tirunelveli</div>
+        </div>
+      </div>
+      <div class="dev-stat-row">
+        <div class="dev-stat">
+          <div class="dev-stat-num">3+</div>
+          <div class="dev-stat-label">Years IT Experience</div>
+        </div>
+        <div class="dev-stat">
+          <div class="dev-stat-num">CCNA</div>
+          <div class="dev-stat-label">Certified Network</div>
+        </div>
+        <div class="dev-stat">
+          <div class="dev-stat-num">90%</div>
+          <div class="dev-stat-label">Setup Success Rate</div>
+        </div>
+        <div class="dev-stat">
+          <div class="dev-stat-num">6mo</div>
+          <div class="dev-stat-label">Free Support Included</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <span class="footer-logo">LEDGESOFT</span>
+  <p class="footer-sub">Construction Intelligence Platform · Tirunelveli, India</p>
+  <div class="footer-contact">
+    <a href="mailto:ajaysharitra@gmail.com" class="footer-link">✉ ajaysharitra@gmail.com</a>
+    <a href="tel:9488001018" class="footer-link">☏ 9488001018</a>
+    <a href="tel:8940149854" class="footer-link">☏ 8940149854</a>
+  </div>
+  <p class="footer-copy">© 2026 AJAY SHARITRA.B · LEDGESOFT v0.1g · ALL RIGHTS RESERVED</p>
+</footer>
+
+<script>
+// ── CURSOR ──────────────────────────────────────────────────────────────────
+const cursor = document.getElementById('cursor');
+const ring   = document.getElementById('cursorRing');
+let mx = 0, my = 0, rx = 0, ry = 0;
+
+document.addEventListener('mousemove', e => {
+  mx = e.clientX; my = e.clientY;
+  cursor.style.left = mx - 5 + 'px';
+  cursor.style.top  = my - 5 + 'px';
+});
+
+function animateRing() {
+  rx += (mx - rx - 18) * 0.12;
+  ry += (my - ry - 18) * 0.12;
+  ring.style.left = rx + 'px';
+  ring.style.top  = ry + 'px';
+  requestAnimationFrame(animateRing);
+}
+animateRing();
+
+document.querySelectorAll('a, button, .feature-card, .tech-chip').forEach(el => {
+  el.addEventListener('mouseenter', () => {
+    cursor.style.transform = 'scale(2)';
+    ring.style.transform = 'scale(1.5)';
+    ring.style.opacity = '1';
+  });
+  el.addEventListener('mouseleave', () => {
+    cursor.style.transform = 'scale(1)';
+    ring.style.transform = 'scale(1)';
+    ring.style.opacity = '0.5';
+  });
+});
+
+// ── SCROLL REVEAL ────────────────────────────────────────────────────────────
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      e.target.classList.add('visible');
+    }
+  });
+}, { threshold: 0.1 });
+
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// ── MOCK NAV ACTIVE ──────────────────────────────────────────────────────────
+document.querySelectorAll('.mock-nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.mock-nav-item').forEach(i => i.classList.remove('active'));
+    item.classList.add('active');
+  });
+});
+
+// ── NAV SCROLL HIDE ──────────────────────────────────────────────────────────
+let lastY = 0;
+window.addEventListener('scroll', () => {
+  const y = window.scrollY;
+  lastY = y;
+});
+</script>
+</body>
+</html>
