@@ -721,6 +721,155 @@
     background: transparent;
   }
 
+  /* ── HERO QUARTERS SPECIAL CARD ── */
+  .project-card.heroquarters-card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    color: var(--ink);
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    display: block;
+  }
+  .project-card.heroquarters-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--amber), var(--forest), var(--rust));
+  }
+  .project-card.heroquarters-card .project-card-body h3 { color: var(--ink); }
+  .project-card.heroquarters-card .project-card-body p { color: var(--muted); }
+  .project-card.heroquarters-card .project-card-footer {
+    border-top: 1px solid var(--line);
+  }
+  .project-card.heroquarters-card .project-link-text { color: var(--ink); }
+  .project-card.heroquarters-card .project-tech { color: var(--muted); }
+  .project-card.heroquarters-card .feat-pill {
+    background: rgba(14,14,14,0.06);
+    color: var(--muted);
+  }
+  .status-beta { background: rgba(184,92,42,0.1); color: var(--rust); }
+
+  /* ── LIVE PRODUCTS BANNER ── */
+  .live-products-banner {
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+    margin-bottom: 2.5rem;
+    padding: 0.7rem 1.2rem;
+    background: rgba(45,74,62,0.08);
+    border: 1px solid rgba(45,74,62,0.2);
+    border-radius: 3px;
+    width: fit-content;
+  }
+  .live-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--forest);
+    animation: live-pulse 2s ease-in-out infinite;
+  }
+  @keyframes live-pulse {
+    0%,100%{box-shadow:0 0 0 0 rgba(45,74,62,0.5)}
+    50%{box-shadow:0 0 0 6px rgba(45,74,62,0)}
+  }
+  .live-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--forest);
+    font-weight: 500;
+  }
+
+  /* ── UPCOMING PROJECTS SECTION ── */
+  .upcoming-section {
+    margin-top: 5rem;
+    padding-top: 3.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .upcoming-header {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .upcoming-label {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--rust);
+    white-space: nowrap;
+  }
+  .upcoming-line {
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .upcoming-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+  }
+  .upcoming-card {
+    background: var(--paper);
+    border: 1px dashed rgba(14,14,14,0.18);
+    border-radius: 4px;
+    padding: 1.8rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  .upcoming-card::after {
+    content: 'COMING SOON';
+    position: absolute;
+    top: 1rem;
+    right: -2.5rem;
+    font-family: var(--mono);
+    font-size: 0.52rem;
+    letter-spacing: 0.1em;
+    background: var(--rust);
+    color: var(--paper);
+    padding: 0.2rem 3rem;
+    transform: rotate(30deg);
+    opacity: 0.7;
+  }
+  .upcoming-card:hover {
+    border-style: solid;
+    border-color: var(--amber);
+    transform: translateY(-4px);
+    box-shadow: 0 12px 40px rgba(14,14,14,0.08);
+  }
+  .upcoming-card-icon { font-size: 1.8rem; margin-bottom: 0.8rem; }
+  .upcoming-card h4 {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: var(--ink);
+  }
+  .upcoming-card p {
+    font-size: 0.85rem;
+    color: var(--muted);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+  }
+  .upcoming-stage {
+    font-family: var(--mono);
+    font-size: 0.62rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.7rem;
+    border-radius: 2px;
+    color: var(--rust);
+    background: rgba(184,92,42,0.1);
+    display: inline-block;
+  }
+
+  @media (max-width: 768px) {
+    .upcoming-grid { grid-template-columns: 1fr; }
+  }
+
   /* ── COMMON MAN SECTION ── */
   .commonman {
     padding: 7rem 0;
@@ -1111,6 +1260,7 @@
     .manifesto-inner, .why-me-inner, .commonman-inner, .contact-inner { grid-template-columns: 1fr; gap: 2rem; }
     .vision-grid, .layers { grid-template-columns: 1fr; }
     .projects-grid { grid-template-columns: 1fr; }
+    .upcoming-grid { grid-template-columns: 1fr; }
     .people-grid { grid-template-columns: repeat(2, 1fr); }
     .hero-scroll-hint { left: 1.5rem; }
     footer { flex-direction: column; gap: 1rem; text-align: center; }
@@ -1129,7 +1279,8 @@
     <li><a href="#projects">Projects</a></li>
     <li><a href="#people">For Everyone</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="https://ajay-sharitra.github.io/ledgesoft.html" target="_blank" class="nav-cta">LedgeSoft ↗</a></li>
+    <li><a href="https://ajay-sharitra.github.io/" target="_blank" class="nav-cta">LedgeSoft ↗</a></li>
+    <li><a href="#heroquarters" class="nav-cta" style="background:var(--forest);margin-left:0.3rem;">Hero Quarters ↗</a></li>
   </ul>
 </nav>
 
@@ -1147,7 +1298,7 @@
     </p>
     <div class="hero-actions">
       <a href="#projects" class="btn-primary">See My Work</a>
-      <a href="https://ajay-sharitra.github.io/ledgesoft.html" target="_blank" class="btn-outline">LedgeSoft ↗</a>
+      <a href="https://ajay-sharitra.github.io/" target="_blank" class="btn-outline">LedgeSoft ↗</a>
     </div>
   </div>
 
@@ -1168,8 +1319,8 @@
           <div class="label">Certified</div>
         </div>
         <div class="stat-box">
-          <div class="num">1</div>
-          <div class="label">Live Product</div>
+          <div class="num">2</div>
+          <div class="label">Live Products</div>
         </div>
         <div class="stat-box">
           <div class="num">₹0</div>
@@ -1188,6 +1339,7 @@
 <div class="marquee-wrap">
   <div class="marquee-track">
     <span class="marquee-item">LedgeSoft <span class="marquee-dot">◆</span></span>
+    <span class="marquee-item">Hero Quarters <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">Software for Everyone <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">Tirunelveli Built <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">Python · Flask · SQLite <span class="marquee-dot">◆</span></span>
@@ -1196,6 +1348,7 @@
     <span class="marquee-item">Network + Software <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">IT for the Common Man <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">LedgeSoft <span class="marquee-dot">◆</span></span>
+    <span class="marquee-item">Hero Quarters <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">Software for Everyone <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">Tirunelveli Built <span class="marquee-dot">◆</span></span>
     <span class="marquee-item">Python · Flask · SQLite <span class="marquee-dot">◆</span></span>
@@ -1259,9 +1412,9 @@
       </div>
       <div class="vision-cell fade-up">
         <span class="vision-cell-num">02</span>
-        <span class="vision-cell-icon">🛒</span>
-        <h3>Petty Shop Inventory & Billing</h3>
-        <p>A simple stock tracker and receipt printer for small neighborhood shops. Touch-friendly, works offline, no internet needed.</p>
+        <span class="vision-cell-icon">🦸</span>
+        <h3>Team Workflow Management</h3>
+        <p>Hero Quarters is in closed beta — a comic-book-themed workflow tool for small teams who want mission boards, role management, and real operational clarity.</p>
       </div>
       <div class="vision-cell fade-up">
         <span class="vision-cell-num">03</span>
@@ -1311,7 +1464,7 @@
           <div class="differ-num">02</div>
           <div class="differ-content">
             <h4>Real products, not promises</h4>
-            <p>LedgeSoft is already built, live, and tested. This isn't a portfolio concept — it's functional software with 15 API endpoints, 8 database tables, and real businesses using it.</p>
+            <p>LedgeSoft is live and tested. Hero Quarters is in closed beta. These aren't portfolio concepts — they're functional software with real APIs, real databases, and real people using them.</p>
           </div>
         </div>
         <div class="differ-item fade-up">
@@ -1361,22 +1514,29 @@
 <section class="projects" id="projects">
   <div class="container">
     <div class="section-label fade-up">What I've Built</div>
-    <h2 class="section-title fade-up">Current &amp; Upcoming<br>Projects</h2>
+    <h2 class="section-title fade-up">Live Products &amp;<br>The Roadmap Ahead</h2>
     <p class="section-body fade-up">Every product starts with a real person who had a real problem. No features for features' sake.</p>
 
+    <!-- Live Products Banner -->
+    <div class="live-products-banner fade-up" style="margin-top:2rem;">
+      <div class="live-dot"></div>
+      <span class="live-label">2 Products Live &amp; In Active Development</span>
+    </div>
+
+    <!-- ── LIVE PRODUCTS GRID ── -->
     <div class="projects-grid">
 
       <!-- LedgeSoft -->
-      <a href="https://ajay-sharitra.github.io/ledgesoft.html" target="_blank" class="project-card fade-up">
+      <a href="https://ajay-sharitra.github.io/" target="_blank" class="project-card fade-up">
         <div class="project-card-header">
           <span class="project-icon">🏗️</span>
           <span class="project-status status-live">● Live — v0.1g</span>
         </div>
         <div class="project-card-body">
           <h3>LedgeSoft</h3>
-          <p>A complete financial intelligence platform for construction companies. Track project income and expenses, visualize profit & loss, export reports, and manage your entire business — without needing an accountant or an ERP subscription.</p>
+          <p>A complete financial intelligence platform for construction companies. Track project income and expenses, visualize profit &amp; loss, export reports, and manage your entire business — without needing an accountant or an ERP subscription.</p>
           <div class="project-features">
-            <span class="feat-pill">P&L Dashboard</span>
+            <span class="feat-pill">P&amp;L Dashboard</span>
             <span class="feat-pill">Excel Export</span>
             <span class="feat-pill">Multi-User RBAC</span>
             <span class="feat-pill">15 REST APIs</span>
@@ -1390,73 +1550,82 @@
         </div>
       </a>
 
-      <!-- ShopTrack -->
-      <div class="project-card upcoming fade-up">
-        <div class="project-card-header">
-          <span class="project-icon">🛒</span>
-          <span class="project-status status-planned">◎ In Design</span>
+      <!-- Hero Quarters -->
+      <a href="https://ajay-sharitra.github.io/heroquarters-site.html" target="_blank" class="project-card heroquarters-card fade-up" id="heroquarters">
+        <div class="project-card-header" style="background:transparent;">
+          <span class="project-icon">🦸</span>
+          <span class="project-status status-beta" style="background:rgba(212,168,67,0.12);color:var(--rust);border:1px solid rgba(184,92,42,0.25);">⚡ Beta — Closed Testing</span>
         </div>
         <div class="project-card-body">
-          <h3>ShopTrack <span style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);font-style:normal">— Coming Next</span></h3>
-          <p>A dead-simple inventory and billing system for petty shops and kirana stores. No internet dependency, touch-friendly, receipt printing support. Built for the shop owner who's still managing stock in a paper notebook.</p>
+          <h3>Hero Quarters</h3>
+          <p>A comic-book-themed workflow management system — your team's secret lair for mission briefings, villain tracking, sidekick coordination, and operational command. Built for small teams who want a powerful tool that actually feels fun to use.</p>
           <div class="project-features">
+            <span class="feat-pill">Mission Board</span>
+            <span class="feat-pill">Team Roles</span>
+            <span class="feat-pill">Villain Tracker</span>
+            <span class="feat-pill">Workflow Automation</span>
+            <span class="feat-pill">Lair Dashboard</span>
+            <span class="feat-pill">Secure Access</span>
+          </div>
+        </div>
+        <div class="project-card-footer">
+          <span class="project-link-text">Explore Hero Quarters <span class="project-link-arrow">→</span></span>
+          <span class="project-tech">Python · Flask · SQLite</span>
+        </div>
+      </a>
+
+    </div>
+
+    <!-- ── UPCOMING PROJECTS ── -->
+    <div class="upcoming-section">
+      <div class="upcoming-header">
+        <span class="upcoming-label">On the Horizon</span>
+        <div class="upcoming-line"></div>
+        <span style="font-family:var(--mono);font-size:0.62rem;color:var(--muted);letter-spacing:0.1em;white-space:nowrap;">IN DESIGN &amp; PLANNED</span>
+      </div>
+      <div class="upcoming-grid">
+
+        <!-- ShopTrack -->
+        <div class="upcoming-card fade-up">
+          <div class="upcoming-card-icon">🛒</div>
+          <h4>ShopTrack</h4>
+          <p>Dead-simple inventory &amp; billing for petty shops and kirana stores. Offline-first, touch-friendly, with Tamil UI and receipt printing.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1rem;">
             <span class="feat-pill">Offline First</span>
             <span class="feat-pill">Stock Alerts</span>
-            <span class="feat-pill">Billing</span>
             <span class="feat-pill">Tamil UI</span>
             <span class="feat-pill">Receipt Print</span>
           </div>
+          <span class="upcoming-stage">◎ In Design</span>
         </div>
-        <div class="project-card-footer">
-          <span class="project-link-text" style="color:var(--muted)">Notify Me When Live</span>
-          <span class="project-tech">Python · Flask</span>
-        </div>
-      </div>
 
-      <!-- TailorDesk -->
-      <div class="project-card upcoming fade-up">
-        <div class="project-card-header">
-          <span class="project-icon">✂️</span>
-          <span class="project-status status-planned">◎ Planned</span>
-        </div>
-        <div class="project-card-body">
-          <h3>TailorDesk <span style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);font-style:normal">— Planned</span></h3>
-          <p>Order management for tailors and boutique owners. Store customer measurements, track orders by due date, manage payment collection, and send WhatsApp reminders. The digital order book that never gets lost.</p>
-          <div class="project-features">
+        <!-- TailorDesk -->
+        <div class="upcoming-card fade-up">
+          <div class="upcoming-card-icon">✂️</div>
+          <h4>TailorDesk</h4>
+          <p>Digital order book for tailors and boutique owners. Customer measurements, due-date tracking, and WhatsApp payment reminders — all in one place.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1rem;">
             <span class="feat-pill">Order Tracking</span>
             <span class="feat-pill">Measurements DB</span>
-            <span class="feat-pill">Payment Status</span>
             <span class="feat-pill">Due Date Alerts</span>
           </div>
+          <span class="upcoming-stage">◎ Planned</span>
         </div>
-        <div class="project-card-footer">
-          <span class="project-link-text" style="color:var(--muted)">Coming Later</span>
-          <span class="project-tech">Python · Flask</span>
-        </div>
-      </div>
 
-      <!-- TutorBook -->
-      <div class="project-card upcoming fade-up">
-        <div class="project-card-header">
-          <span class="project-icon">📚</span>
-          <span class="project-status status-planned">◎ Planned</span>
-        </div>
-        <div class="project-card-body">
-          <h3>TutorBook <span style="font-family:var(--mono);font-size:0.7rem;color:var(--muted);font-style:normal">— Planned</span></h3>
-          <p>Fee tracking and student management for home tutors and small coaching centres. Monthly fee collection, attendance logs, parent contact lists, and overdue payment reminders — replacing the physical register completely.</p>
-          <div class="project-features">
+        <!-- TutorBook -->
+        <div class="upcoming-card fade-up">
+          <div class="upcoming-card-icon">📚</div>
+          <h4>TutorBook</h4>
+          <p>Fee tracking and student management for home tutors. Monthly collection, attendance logs, parent directory, and overdue reminders — replacing the physical register.</p>
+          <div style="display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:1rem;">
             <span class="feat-pill">Fee Collection</span>
             <span class="feat-pill">Attendance</span>
-            <span class="feat-pill">Overdue Alerts</span>
             <span class="feat-pill">Parent Directory</span>
           </div>
+          <span class="upcoming-stage">◎ Planned</span>
         </div>
-        <div class="project-card-footer">
-          <span class="project-link-text" style="color:var(--muted)">Coming Later</span>
-          <span class="project-tech">Python · Flask</span>
-        </div>
-      </div>
 
+      </div>
     </div>
   </div>
 </section>
@@ -1644,8 +1813,9 @@
 
       <div class="contact-cta-box fade-up">
         <h3>Ready to give your business better tools?</h3>
-        <p>Try LedgeSoft — the first product from this studio — and see how a focused, affordable tool can transform how you track your construction projects and finances.</p>
-        <a href="https://ajay-sharitra.github.io/ledgesoft.html" target="_blank" class="btn-primary">Explore LedgeSoft ↗</a>
+        <p>Try LedgeSoft for construction finance management, or join the Hero Quarters waitlist for team workflow tools. Both built here, in Tirunelveli, for real people.</p>
+        <a href="https://ajay-sharitra.github.io/" target="_blank" class="btn-primary">Explore LedgeSoft ↗</a>
+        <a href="#heroquarters" class="btn-outline" style="display:block;text-align:center;margin-top:0.8rem;color:var(--paper);border-color:rgba(245,240,232,0.3)">See Hero Quarters ↗</a>
         <a href="mailto:ajaysharitra@gmail.com" class="btn-outline" style="display:block;text-align:center;margin-top:0.8rem;color:var(--paper);border-color:rgba(245,240,232,0.3)">Send Me a Message</a>
         <p class="cta-note" style="margin-top:1.5rem;">No sales team. No auto-replies. Just me.</p>
       </div>
@@ -1658,7 +1828,8 @@
   <div class="footer-logo">Ajay <span>Sharitra</span> .B</div>
   <div class="footer-copy">© 2026 · Tirunelveli, Tamil Nadu · Building Software for Everyone</div>
   <div class="footer-links">
-    <a href="https://ajay-sharitra.github.io/ledgesoft.html" target="_blank">LedgeSoft</a>
+    <a href="https://ajay-sharitra.github.io/" target="_blank">LedgeSoft</a>
+    <a href="#heroquarters"> Hero Quarters</a>
     <a href="mailto:ajaysharitra@gmail.com">Email</a>
     <a href="tel:9488001018">Call</a>
   </div>
