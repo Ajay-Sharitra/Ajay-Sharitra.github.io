@@ -1,0 +1,740 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Day Soft — Your Personal Day Book</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink: #1a1917;
+    --ink2: #3d3b38;
+    --muted: #7a776f;
+    --pale: #f5f3ef;
+    --warm: #ede9e0;
+    --accent: #b8541a;
+    --accent2: #d46a2a;
+    --gold: #c9952a;
+    --teal: #1a6b5c;
+    --teal2: #22836f;
+    --white: #fdfcfa;
+    --border: rgba(26,25,23,0.12);
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--white);
+    color: var(--ink);
+    overflow-x: hidden;
+    line-height: 1.6;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(253,252,250,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 5vw; height: 64px;
+  }
+  .nav-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.5rem; color: var(--ink);
+    display: flex; align-items: center; gap: 10px;
+    text-decoration: none;
+  }
+  .logo-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); display: inline-block; }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a { color: var(--muted); font-size: 0.9rem; font-weight: 500; text-decoration: none; letter-spacing: 0.02em; transition: color .2s; }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    background: var(--ink); color: var(--white);
+    padding: 8px 20px; border-radius: 6px;
+    font-size: 0.875rem; font-weight: 500;
+    text-decoration: none; letter-spacing: 0.02em;
+    transition: background .2s, transform .15s;
+  }
+  .nav-cta:hover { background: var(--accent); transform: translateY(-1px); }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    background: var(--ink);
+    display: flex; align-items: center;
+    padding: 120px 5vw 80px;
+    position: relative; overflow: hidden;
+  }
+  .hero-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .hero-glow {
+    position: absolute; width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(184,84,26,0.18) 0%, transparent 70%);
+    top: -100px; right: -100px; pointer-events: none;
+  }
+  .hero-glow2 {
+    position: absolute; width: 400px; height: 400px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(26,107,92,0.15) 0%, transparent 70%);
+    bottom: -80px; left: 20%; pointer-events: none;
+  }
+  .hero-inner { position: relative; z-index: 2; max-width: 820px; }
+  .hero-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 100px; padding: 6px 14px;
+    font-size: 0.78rem; font-weight: 500; color: rgba(255,255,255,0.6);
+    letter-spacing: 0.06em; text-transform: uppercase;
+    margin-bottom: 28px;
+    animation: fadeUp .7s ease both;
+  }
+  .hero-badge span { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+  h1.hero-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(3rem, 7vw, 6rem);
+    color: var(--white);
+    line-height: 1.05;
+    margin-bottom: 24px;
+    animation: fadeUp .7s .1s ease both;
+  }
+  h1.hero-title em { color: var(--accent2); font-style: italic; }
+
+  .hero-sub {
+    font-size: 1.15rem; color: rgba(255,255,255,0.55);
+    max-width: 540px; line-height: 1.75;
+    margin-bottom: 40px;
+    animation: fadeUp .7s .2s ease both;
+  }
+  .hero-actions {
+    display: flex; gap: 14px; flex-wrap: wrap;
+    animation: fadeUp .7s .3s ease both;
+  }
+  .btn-primary {
+    background: var(--accent); color: #fff;
+    padding: 14px 28px; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 500;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    transition: background .2s, transform .15s;
+  }
+  .btn-primary:hover { background: var(--accent2); transform: translateY(-2px); }
+  .btn-ghost {
+    border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.7);
+    padding: 14px 28px; border-radius: 8px;
+    font-size: 0.95rem; font-weight: 400;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px;
+    transition: border-color .2s, color .2s;
+  }
+  .btn-ghost:hover { border-color: rgba(255,255,255,0.5); color: #fff; }
+
+  .hero-stat-row {
+    margin-top: 72px; display: flex; gap: 48px; flex-wrap: wrap;
+    animation: fadeUp .7s .5s ease both;
+  }
+  .hero-stat .num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.4rem; color: var(--white);
+  }
+  .hero-stat .lbl { font-size: 0.8rem; color: rgba(255,255,255,0.4); margin-top: 2px; letter-spacing: 0.04em; }
+
+  /* SECTION COMMON */
+  section { padding: 100px 5vw; }
+  .section-tag {
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent);
+    margin-bottom: 12px; display: block;
+  }
+  h2.section-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3rem);
+    color: var(--ink); line-height: 1.15;
+    margin-bottom: 16px;
+  }
+  .section-lead { font-size: 1.05rem; color: var(--muted); max-width: 540px; line-height: 1.75; }
+
+  /* PROBLEM STRIP */
+  .problem-strip {
+    background: var(--warm);
+    padding: 60px 5vw;
+    display: flex; gap: 32px; flex-wrap: wrap; align-items: center; justify-content: center;
+  }
+  .problem-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    max-width: 240px;
+    flex: 1; min-width: 200px;
+    position: relative;
+  }
+  .problem-card .icon {
+    font-size: 1.5rem; margin-bottom: 10px;
+  }
+  .problem-card h4 { font-size: 0.95rem; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .problem-card p { font-size: 0.85rem; color: var(--muted); line-height: 1.6; }
+  .problem-strip-label {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem; color: var(--ink2);
+    max-width: 200px; text-align: center;
+    flex-shrink: 0;
+  }
+
+  /* FEATURES */
+  .features-section { background: var(--white); }
+  .features-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 24px; margin-top: 56px;
+  }
+  .feat-card {
+    border: 1px solid var(--border);
+    border-radius: 14px; padding: 32px;
+    background: var(--white);
+    transition: border-color .2s, transform .2s, box-shadow .2s;
+    position: relative; overflow: hidden;
+  }
+  .feat-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 3px;
+    background: var(--accent);
+    transform: scaleX(0); transform-origin: left;
+    transition: transform .3s ease;
+  }
+  .feat-card:hover::before { transform: scaleX(1); }
+  .feat-card:hover { border-color: rgba(184,84,26,0.25); transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.06); }
+  .feat-icon {
+    width: 44px; height: 44px; border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem; margin-bottom: 18px;
+  }
+  .feat-card h3 { font-size: 1.05rem; font-weight: 600; color: var(--ink); margin-bottom: 8px; }
+  .feat-card p { font-size: 0.88rem; color: var(--muted); line-height: 1.7; }
+
+  /* MODULES */
+  .modules-section { background: var(--pale); }
+  .modules-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px; margin-top: 56px;
+  }
+  @media(max-width:800px){ .modules-grid { grid-template-columns: 1fr; } }
+  .mod-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: 16px; padding: 36px 28px;
+    position: relative;
+  }
+  .mod-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 4rem; color: var(--warm);
+    position: absolute; top: 16px; right: 20px;
+    line-height: 1; user-select: none;
+  }
+  .mod-card h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.4rem; color: var(--ink); margin-bottom: 12px;
+  }
+  .mod-card p { font-size: 0.875rem; color: var(--muted); line-height: 1.75; }
+  .mod-tag {
+    display: inline-block; margin-top: 18px;
+    background: var(--warm); color: var(--accent);
+    font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em;
+    padding: 4px 10px; border-radius: 100px;
+    text-transform: uppercase;
+  }
+
+  /* WHY LOCAL */
+  .local-section {
+    background: var(--ink);
+    color: var(--white);
+  }
+  .local-section .section-title { color: var(--white); }
+  .local-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 20px; margin-top: 56px;
+  }
+  @media(max-width:700px){ .local-grid { grid-template-columns: 1fr; } }
+  .local-card {
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 14px; padding: 28px 24px;
+    display: flex; gap: 16px;
+  }
+  .local-card .ic {
+    width: 40px; height: 40px; min-width: 40px;
+    border-radius: 10px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.2rem;
+  }
+  .local-card h4 { font-size: 0.95rem; font-weight: 600; color: var(--white); margin-bottom: 6px; }
+  .local-card p { font-size: 0.83rem; color: rgba(255,255,255,0.5); line-height: 1.65; }
+
+  /* TECH */
+  .tech-section { background: var(--white); }
+  .tech-chips {
+    display: flex; flex-wrap: wrap; gap: 14px; margin-top: 40px;
+  }
+  .tech-chip {
+    display: flex; align-items: center; gap: 10px;
+    border: 1px solid var(--border);
+    border-radius: 100px; padding: 10px 20px;
+    font-size: 0.875rem; font-weight: 500; color: var(--ink2);
+    background: var(--white);
+    transition: border-color .2s, color .2s;
+  }
+  .tech-chip:hover { border-color: var(--accent); color: var(--accent); }
+  .tech-chip .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+  /* USE CASES */
+  .usecase-section { background: var(--pale); }
+  .usecase-grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px; margin-top: 48px;
+  }
+  .uc-card {
+    background: var(--white); border-radius: 14px;
+    border: 1px solid var(--border);
+    padding: 28px 24px; text-align: center;
+  }
+  .uc-emoji { font-size: 2.4rem; margin-bottom: 14px; display: block; }
+  .uc-card h4 { font-size: 0.95rem; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .uc-card p { font-size: 0.83rem; color: var(--muted); line-height: 1.65; }
+
+  /* HIGHLIGHT STRIP */
+  .highlight-strip {
+    background: var(--accent);
+    padding: 80px 5vw; text-align: center;
+  }
+  .highlight-strip h2 {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(2rem, 4vw, 3.2rem);
+    color: var(--white); line-height: 1.2; margin-bottom: 16px;
+  }
+  .highlight-strip p { font-size: 1.05rem; color: rgba(255,255,255,0.75); max-width: 560px; margin: 0 auto 32px; line-height: 1.75; }
+
+  /* CONTACT */
+  .contact-section { background: var(--white); }
+  .contact-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 60px;
+    margin-top: 56px; align-items: start;
+  }
+  @media(max-width:700px){ .contact-grid { grid-template-columns: 1fr; } }
+  .contact-info h3 {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.8rem; color: var(--ink); margin-bottom: 8px;
+  }
+  .contact-info p { font-size: 0.9rem; color: var(--muted); line-height: 1.75; margin-bottom: 28px; }
+  .contact-rows { display: flex; flex-direction: column; gap: 16px; }
+  .contact-row {
+    display: flex; align-items: flex-start; gap: 14px;
+    border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px 18px;
+    transition: border-color .2s;
+  }
+  .contact-row:hover { border-color: var(--accent); }
+  .contact-row .c-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    background: var(--warm); display: flex; align-items: center; justify-content: center;
+    font-size: 1rem; flex-shrink: 0;
+  }
+  .contact-row .c-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; letter-spacing: 0.04em; text-transform: uppercase; }
+  .contact-row .c-val { font-size: 0.9rem; color: var(--ink); font-weight: 500; margin-top: 2px; }
+  .contact-row a { color: inherit; text-decoration: none; }
+  .contact-row a:hover { color: var(--accent); }
+
+  .dev-card {
+    background: var(--ink); border-radius: 16px;
+    padding: 36px; color: var(--white);
+  }
+  .dev-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: var(--accent); display: flex; align-items: center; justify-content: center;
+    font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: #fff;
+    margin-bottom: 20px;
+  }
+  .dev-card h3 { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--white); margin-bottom: 4px; }
+  .dev-card .dev-title { font-size: 0.8rem; color: rgba(255,255,255,0.4); letter-spacing: 0.06em; text-transform: uppercase; margin-bottom: 16px; }
+  .dev-card p { font-size: 0.875rem; color: rgba(255,255,255,0.55); line-height: 1.75; }
+
+  /* FOOTER */
+  footer {
+    background: var(--ink);
+    border-top: 1px solid rgba(255,255,255,0.07);
+    padding: 40px 5vw;
+    display: flex; align-items: center; justify-content: space-between;
+    flex-wrap: wrap; gap: 16px;
+  }
+  footer .f-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 1.2rem; color: var(--white);
+    display: flex; align-items: center; gap: 8px;
+  }
+  footer p { font-size: 0.8rem; color: rgba(255,255,255,0.3); }
+  .f-tech {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem; color: rgba(255,255,255,0.25);
+    letter-spacing: 0.04em;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(24px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .reveal {
+    opacity: 0; transform: translateY(32px);
+    transition: opacity .65s ease, transform .65s ease;
+  }
+  .reveal.visible { opacity: 1; transform: translateY(0); }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--pale); }
+  ::-webkit-scrollbar-thumb { background: var(--muted); border-radius: 3px; }
+
+  /* RESPONSIVE */
+  @media(max-width:900px){
+    .nav-links { display: none; }
+    .modules-grid { grid-template-columns: 1fr; }
+  }
+  @media(max-width:640px){
+    section { padding: 72px 5vw; }
+    .features-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#"><span class="logo-dot"></span>Day Soft</a>
+  <ul class="nav-links">
+    <li><a href="#features">Features</a></li>
+    <li><a href="#modules">Modules</a></li>
+    <li><a href="#why-local">Why Local</a></li>
+    <li><a href="#tech">Tech</a></li>
+    <li><a href="#contact">Contact</a></li>
+  </ul>
+  <a href="#contact" class="nav-cta">Get in Touch</a>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-grid"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-glow2"></div>
+  <div class="hero-inner">
+    <div class="hero-badge"><span></span> Standalone · Offline · Yours</div>
+    <h1 class="hero-title">Your books.<br><em>Beautifully</em><br>kept.</h1>
+    <p class="hero-sub">Day Soft is a lightweight, offline-first day book application built for working professionals who need simple, reliable, and fast financial record-keeping — no internet, no subscriptions, no complexity.</p>
+    <div class="hero-actions">
+      <a href="#features" class="btn-primary">Explore Features ↓</a>
+      <a href="#contact" class="btn-ghost">Talk to Developer</a>
+    </div>
+    <div class="hero-stat-row">
+      <div class="hero-stat"><div class="num">100%</div><div class="lbl">Offline & Private</div></div>
+      <div class="hero-stat"><div class="num">3</div><div class="lbl">Core Modules</div></div>
+      <div class="hero-stat"><div class="num">0</div><div class="lbl">Subscriptions</div></div>
+      <div class="hero-stat"><div class="num">∞</div><div class="lbl">Entries Supported</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<div class="problem-strip">
+  <div class="problem-strip-label">Why most tools<br>fall short</div>
+  <div class="problem-card">
+    <div class="icon">🌐</div>
+    <h4>Cloud tools need internet</h4>
+    <p>Miss a connection, miss your data. Not ideal for shops, offices, or fieldwork.</p>
+  </div>
+  <div class="problem-card">
+    <div class="icon">💸</div>
+    <h4>Subscriptions add up</h4>
+    <p>Monthly fees for features you barely use. Day Soft is a one-time tool — always there.</p>
+  </div>
+  <div class="problem-card">
+    <div class="icon">📊</div>
+    <h4>Spreadsheets are messy</h4>
+    <p>Excel sheets get cluttered fast. No structure, no search, no backup logic.</p>
+  </div>
+  <div class="problem-card">
+    <div class="icon">🔐</div>
+    <h4>Privacy concerns</h4>
+    <p>Your business data stored on someone else's server? Day Soft keeps it all local.</p>
+  </div>
+</div>
+
+<!-- FEATURES -->
+<section class="features-section" id="features">
+  <div class="reveal">
+    <span class="section-tag">What you get</span>
+    <h2 class="section-title">Everything you need,<br>nothing you don't.</h2>
+    <p class="section-lead">Day Soft is packed with practical features for real-world financial tracking — designed for simplicity, built for reliability.</p>
+  </div>
+  <div class="features-grid reveal">
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fef3ec;">📒</div>
+      <h3>Ledger Management</h3>
+      <p>Create and manage unique ledgers with IDs, names, phone numbers, and locations. Smart validation prevents duplicate entries.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#eef8f5;">📅</div>
+      <h3>Day Book Entry</h3>
+      <p>Log daily credit and debit entries against any ledger with date selectors, running totals, and multi-row support for multiple parties.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fdf7ec;">📈</div>
+      <h3>Statement Reports</h3>
+      <p>Filter entries by date range and ledger. View, delete, and export your complete transaction history to Excel in one click.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#f0f0ff;">🔐</div>
+      <h3>Login Security</h3>
+      <p>Password-protected access ensures only authorised users open the software. Your financial data stays private and secure.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fff0f0;">💾</div>
+      <h3>Auto DB Backup</h3>
+      <p>Automatic database backup every 30 minutes. Manual backups on demand. Restore any backup with admin password confirmation.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#f0fff4;">🕵️</div>
+      <h3>Activity Logs</h3>
+      <p>Every user action is timestamped and logged daily in readable log files — even DB restores are recorded for full audit trails.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fef3ec;">🔍</div>
+      <h3>Smart Search</h3>
+      <p>Type any part of a ledger ID or name — Day Soft dynamically filters results as you type, case-insensitively, for quick selection.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#eef8f5;">🖼️</div>
+      <h3>Custom Splash Screen</h3>
+      <p>Place your own images in the splash folder — the app picks one at random on every launch for a personal, branded feel.</p>
+    </div>
+    <div class="feat-card">
+      <div class="feat-icon" style="background:#fdf7ec;">📤</div>
+      <h3>Excel Export</h3>
+      <p>Export any ledger's complete transaction history to Excel format for sharing, printing, or further analysis in seconds.</p>
+    </div>
+  </div>
+</section>
+
+<!-- MODULES -->
+<section class="modules-section" id="modules">
+  <div class="reveal">
+    <span class="section-tag">Three core modules</span>
+    <h2 class="section-title">Simple structure.<br>Powerful results.</h2>
+    <p class="section-lead">Day Soft is organised into three focused modules — each doing its job clearly, without overlap or confusion.</p>
+  </div>
+  <div class="modules-grid reveal">
+    <div class="mod-card">
+      <div class="mod-num">01</div>
+      <h3>Ledger Creation</h3>
+      <p>Set up accounts for every client, vendor, or project. Each ledger gets a unique ID and name with optional phone and location fields. Fully validated — no duplicates allowed.</p>
+      <span class="mod-tag">Setup once, use always</span>
+    </div>
+    <div class="mod-card">
+      <div class="mod-num">02</div>
+      <h3>Day Book</h3>
+      <p>Enter daily transactions against any ledger. Add credits and debits, write particulars, choose the date, and save — all in a clean tabular view with real-time running totals.</p>
+      <span class="mod-tag">Daily entry made easy</span>
+    </div>
+    <div class="mod-card">
+      <div class="mod-num">03</div>
+      <h3>Day Book Statement</h3>
+      <p>Query your history by ledger and date range. View all transactions in latest-first order, delete individual rows or all entries, and export the full statement to Excel.</p>
+      <span class="mod-tag">Reports at your fingertips</span>
+    </div>
+  </div>
+</section>
+
+<!-- WHY LOCAL -->
+<section class="local-section" id="why-local">
+  <div class="reveal">
+    <span class="section-tag" style="color:var(--gold);">Why offline-first</span>
+    <h2 class="section-title">Runs on your machine.<br>Answers to no one else.</h2>
+    <p class="section-lead" style="color:rgba(255,255,255,0.5);">Day Soft stores everything on your own computer. No cloud sync. No servers. No risk. Just your data, in your hands.</p>
+  </div>
+  <div class="local-grid reveal">
+    <div class="local-card">
+      <div class="ic" style="background:rgba(184,84,26,0.2);">⚡</div>
+      <div>
+        <h4>Blazing fast</h4>
+        <p>No network latency. All queries run locally on SQLite — results appear instantly, even with thousands of entries.</p>
+      </div>
+    </div>
+    <div class="local-card">
+      <div class="ic" style="background:rgba(26,107,92,0.2);">🔒</div>
+      <div>
+        <h4>Truly private</h4>
+        <p>Your transaction data never leaves your computer. No analytics, no telemetry, no third-party access — ever.</p>
+      </div>
+    </div>
+    <div class="local-card">
+      <div class="ic" style="background:rgba(201,149,42,0.2);">📡</div>
+      <div>
+        <h4>Works without internet</h4>
+        <p>Power cuts, ISP outages, remote locations — Day Soft keeps working regardless of connectivity.</p>
+      </div>
+    </div>
+    <div class="local-card">
+      <div class="ic" style="background:rgba(184,84,26,0.2);">🗃️</div>
+      <div>
+        <h4>You own your data</h4>
+        <p>The SQLite file is yours. Back it up to USB, restore from any point, or archive old databases anytime.</p>
+      </div>
+    </div>
+    <div class="local-card">
+      <div class="ic" style="background:rgba(26,107,92,0.2);">🛡️</div>
+      <div>
+        <h4>Backup & restore</h4>
+        <p>Auto-backup every 30 minutes, manual backups by date folder, and admin-verified restore from any saved DB.</p>
+      </div>
+    </div>
+    <div class="local-card">
+      <div class="ic" style="background:rgba(201,149,42,0.2);">🖥️</div>
+      <div>
+        <h4>Dedicated window app</h4>
+        <p>Runs in its own native window — not a browser tab. Maximise, resize, or keep it compact alongside your other work.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TECH -->
+<section class="tech-section" id="tech">
+  <div class="reveal">
+    <span class="section-tag">Under the hood</span>
+    <h2 class="section-title">Built on proven,<br>open technology.</h2>
+    <p class="section-lead">Day Soft uses a modern, stable stack chosen for performance, portability, and long-term reliability — not trends.</p>
+  </div>
+  <div class="tech-chips reveal">
+    <div class="tech-chip"><span class="dot" style="background:#3776ab;"></span> Python — Core Language</div>
+    <div class="tech-chip"><span class="dot" style="background:#41cd52;"></span> PySide6 — Native GUI</div>
+    <div class="tech-chip"><span class="dot" style="background:#003b57;"></span> SQLite — Local Database</div>
+    <div class="tech-chip"><span class="dot" style="background:#1d6fa4;"></span> Virtual Environment — Isolated Runtime</div>
+    <div class="tech-chip"><span class="dot" style="background:#217346;"></span> OpenPyXL — Excel Export</div>
+    <div class="tech-chip"><span class="dot" style="background:#b8541a;"></span> Auto-Backup Engine — 30-min Cycles</div>
+    <div class="tech-chip"><span class="dot" style="background:#555;"></span> Activity Logger — 15-sec Timestamping</div>
+    <div class="tech-chip"><span class="dot" style="background:#888;"></span> Qt Calendar Widget — Date Picker</div>
+  </div>
+  <div class="reveal" style="margin-top:56px; background:var(--ink); border-radius:16px; padding:36px; display:flex; align-items:center; gap:32px; flex-wrap:wrap;">
+    <div>
+      <div style="font-family:'JetBrains Mono',monospace; font-size:0.78rem; color:rgba(255,255,255,0.4); margin-bottom:8px;">STACK SUMMARY</div>
+      <p style="font-family:'JetBrains Mono',monospace; font-size:0.9rem; color:#41cd52; line-height:1.9;">
+        python + pyside6 + sqlite3<br>
+        → single user, single machine<br>
+        → zero external dependencies<br>
+        → runs on Windows / macOS / Linux
+      </p>
+    </div>
+    <div style="flex:1; min-width:220px;">
+      <p style="font-size:0.9rem; color:rgba(255,255,255,0.55); line-height:1.75;">Day Soft is packaged in a Python virtual environment so it never conflicts with other software on your machine. Clean install, clean uninstall.</p>
+    </div>
+  </div>
+</section>
+
+<!-- USE CASES -->
+<section class="usecase-section">
+  <div class="reveal">
+    <span class="section-tag">Who it's for</span>
+    <h2 class="section-title">Made for the everyday<br>working professional.</h2>
+    <p class="section-lead">If you deal with money, clients, or vendors — Day Soft is built for you.</p>
+  </div>
+  <div class="usecase-grid reveal">
+    <div class="uc-card"><span class="uc-emoji">🛒</span><h4>Shop Owners</h4><p>Track daily sales, credit given to customers, and purchases from vendors — all in one place.</p></div>
+    <div class="uc-card"><span class="uc-emoji">🏗️</span><h4>Contractors</h4><p>Manage multiple project ledgers, track material costs and client payments, export reports for billing.</p></div>
+    <div class="uc-card"><span class="uc-emoji">📦</span><h4>Traders & Distributors</h4><p>Keep clear debit/credit records per party. Statement view shows exactly who owes what and when.</p></div>
+    <div class="uc-card"><span class="uc-emoji">🏥</span><h4>Clinics & Services</h4><p>Log daily income and expenses per account. Secure, private, and always available offline.</p></div>
+    <div class="uc-card"><span class="uc-emoji">💼</span><h4>Freelancers</h4><p>Track invoices and payments by client. Date-range statements make tax time effortless.</p></div>
+    <div class="uc-card"><span class="uc-emoji">🏫</span><h4>Institutions</h4><p>Schools, coaching centres, and trusts can manage fee collections and expense records cleanly.</p></div>
+  </div>
+</section>
+
+<!-- HIGHLIGHT -->
+<div class="highlight-strip reveal">
+  <h2>No cloud. No subscription.<br>Just your data, kept beautifully.</h2>
+  <p>Day Soft is the quiet, reliable tool that working professionals in India have been waiting for — simple enough for anyone, powerful enough for every workday.</p>
+  <a href="#contact" class="btn-primary" style="display:inline-flex;">Contact the Developer ↓</a>
+</div>
+
+<!-- CONTACT -->
+<section class="contact-section" id="contact">
+  <div class="reveal">
+    <span class="section-tag">Get in touch</span>
+    <h2 class="section-title">Interested in Day Soft?<br>Let's talk.</h2>
+    <p class="section-lead">Reach out for purchase, customisation, installation support, or any query about the software.</p>
+  </div>
+  <div class="contact-grid reveal">
+    <div class="contact-info">
+      <h3>Contact Details</h3>
+      <p>Day Soft is developed and maintained by a single passionate developer. Reach out directly — response guaranteed.</p>
+      <div class="contact-rows">
+        <div class="contact-row">
+          <div class="c-icon">📞</div>
+          <div>
+            <div class="c-label">Phone</div>
+            <div class="c-val"><a href="tel:+919488001018">+91 94880 01018</a></div>
+          </div>
+        </div>
+        <div class="contact-row">
+          <div class="c-icon">📱</div>
+          <div>
+            <div class="c-label">Alternate</div>
+            <div class="c-val"><a href="tel:+918940149854">+91 89401 49854</a></div>
+          </div>
+        </div>
+        <div class="contact-row">
+          <div class="c-icon">✉️</div>
+          <div>
+            <div class="c-label">Email</div>
+            <div class="c-val"><a href="mailto:ajaysharitra@gmail.com">ajaysharitra@gmail.com</a></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dev-card">
+      <div class="dev-avatar">AS</div>
+      <h3>Ajay Sharitra</h3>
+      <div class="dev-title">Developer &amp; Creator of Day Soft</div>
+      <p>Ajay built Day Soft from the ground up to solve a real problem — simple, offline, secure day book software for everyday Indian professionals. Built with care, maintained with commitment.</p>
+      <div style="margin-top:24px; padding-top:24px; border-top:1px solid rgba(255,255,255,0.1);">
+        <div style="font-size:0.75rem; color:rgba(255,255,255,0.3); letter-spacing:0.06em; text-transform:uppercase; margin-bottom:10px;">Available for</div>
+        <div style="display:flex; flex-wrap:wrap; gap:8px;">
+          <span style="background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.6); font-size:0.78rem; padding:4px 12px; border-radius:100px;">Installation Support</span>
+          <span style="background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.6); font-size:0.78rem; padding:4px 12px; border-radius:100px;">Customisation</span>
+          <span style="background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.6); font-size:0.78rem; padding:4px 12px; border-radius:100px;">Training</span>
+          <span style="background:rgba(255,255,255,0.07); color:rgba(255,255,255,0.6); font-size:0.78rem; padding:4px 12px; border-radius:100px;">Bug Fixes</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="f-logo"><span style="width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;"></span>Day Soft</div>
+  <p>© 2025 Ajay Sharitra. All rights reserved.</p>
+  <div class="f-tech">python · pyside6 · sqlite</div>
+</footer>
+
+<script>
+const observer = new IntersectionObserver(entries => {
+  entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12 });
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
