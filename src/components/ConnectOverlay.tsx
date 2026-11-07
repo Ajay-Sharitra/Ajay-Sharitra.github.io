@@ -9,28 +9,52 @@ interface ConnectOverlayProps {
 
 export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(false);
   const [name, setName] = useState('');
   const [message, setMessage] = useState('');
   const [inquiryType, setInquiryType] = useState('Software Development');
 
   useEffect(() => {
-    if (!isOpen) return;
-
-    if (containerRef.current) {
-      gsap.fromTo(
-        containerRef.current,
-        { yPercent: 100, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.65, ease: 'power4.out' }
-      );
+    if (isOpen && !wasOpenRef.current) {
+      wasOpenRef.current = true;
+      if (containerRef.current) {
+        gsap.fromTo(
+          containerRef.current,
+          { yPercent: 100, opacity: 0 },
+          { yPercent: 0, opacity: 1, duration: 0.45, ease: 'power4.out' }
+        );
+      }
+    } else if (!isOpen) {
+      wasOpenRef.current = false;
     }
+  }, [isOpen]);
 
+  const handleClose = () => {
+    if (containerRef.current) {
+      gsap.to(containerRef.current, {
+        yPercent: 100,
+        opacity: 0,
+        duration: 0.28,
+        ease: 'power3.in',
+        onComplete: () => {
+          wasOpenRef.current = false;
+          onClose();
+        },
+      });
+    } else {
+      wasOpenRef.current = false;
+      onClose();
+    }
+  };
+
+  useEffect(() => {
+    if (!isOpen) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
     window.addEventListener('keydown', handleKeyDown);
-
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -52,6 +76,7 @@ export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps)
     <div
       ref={containerRef}
       className="fixed inset-0 z-[60] bg-[#0b0b0b] flex flex-col overflow-y-auto custom-scrollbar select-text text-[#cee49f]"
+      style={{ cursor: 'auto' }}
     >
       {/* Top Header */}
       <div className="sticky top-0 z-20 flex justify-between items-center px-6 md:px-16 py-6 bg-[#0b0b0b] border-b border-[#cee49f]/15">
@@ -66,8 +91,9 @@ export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps)
         </div>
 
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="pill flex items-center gap-2 hover:bg-[#cee49f] hover:text-[#0b0b0b] transition-colors"
+          style={{ cursor: 'pointer' }}
           aria-label="Close connect"
         >
           <span>CLOSE</span>
@@ -97,6 +123,7 @@ export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps)
             target="_blank"
             rel="noreferrer"
             className="p-6 md:p-8 bg-[#cee49f]/5 border border-[#cee49f]/20 hover:border-[#cee49f] rounded-[2px] transition-colors group"
+            style={{ cursor: 'pointer' }}
           >
             <div className="flex justify-between items-start">
               <div>
@@ -121,6 +148,7 @@ export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps)
           <a
             href={`mailto:${PROFILE.contacts.email}`}
             className="p-6 md:p-8 bg-[#cee49f]/5 border border-[#cee49f]/20 hover:border-[#cee49f] rounded-[2px] transition-colors group"
+            style={{ cursor: 'pointer' }}
           >
             <div className="flex justify-between items-start">
               <div>
@@ -145,6 +173,7 @@ export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps)
           <a
             href={`tel:${PROFILE.contacts.primaryPhone.replace(/\s+/g, '')}`}
             className="p-6 bg-[#cee49f]/5 border border-[#cee49f]/20 hover:border-[#cee49f] rounded-[2px] transition-colors"
+            style={{ cursor: 'pointer' }}
           >
             <div className="mono text-[10px] uppercase tracking-widest opacity-60">
               VOICE CALL
@@ -230,6 +259,7 @@ export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps)
               <button
                 type="submit"
                 className="px-8 py-3.5 bg-[#cee49f] text-[#0b0b0b] font-mono-medium font-bold text-xs uppercase tracking-wider rounded-[2px] hover:opacity-90 transition-opacity"
+                style={{ cursor: 'pointer' }}
               >
                 DISPATCH VIA WHATSAPP ↗
               </button>
@@ -237,6 +267,7 @@ export default function ConnectOverlay({ isOpen, onClose }: ConnectOverlayProps)
                 type="button"
                 onClick={handleEmailSend}
                 className="px-8 py-3.5 border border-[#cee49f] text-[#cee49f] font-mono-medium text-xs uppercase tracking-wider rounded-[2px] hover:bg-[#cee49f]/10 transition-colors"
+                style={{ cursor: 'pointer' }}
               >
                 DISPATCH VIA EMAIL ↗
               </button>

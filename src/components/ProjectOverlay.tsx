@@ -10,27 +10,54 @@ interface ProjectOverlayProps {
 export default function ProjectOverlay({ project, onClose }: ProjectOverlayProps) {
   const overlayRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const animatedProjectIdRef = useRef<string | null>(null);
 
+  // Entrance animation strictly guarded: runs once per opened project
   useEffect(() => {
-    if (!project) return;
-
-    // Slide up animation
-    if (overlayRef.current) {
-      gsap.fromTo(
-        overlayRef.current,
-        { yPercent: 100, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.65, ease: 'power4.out' }
-      );
+    if (!project) {
+      animatedProjectIdRef.current = null;
+      return;
     }
 
-    // Escape key listener
+    if (animatedProjectIdRef.current !== project.id) {
+      animatedProjectIdRef.current = project.id;
+      if (overlayRef.current) {
+        gsap.fromTo(
+          overlayRef.current,
+          { yPercent: 100, opacity: 0 },
+          { yPercent: 0, opacity: 1, duration: 0.45, ease: 'power4.out' }
+        );
+      }
+    }
+  }, [project?.id]);
+
+  const handleClose = () => {
+    if (overlayRef.current) {
+      gsap.to(overlayRef.current, {
+        yPercent: 100,
+        opacity: 0,
+        duration: 0.28,
+        ease: 'power3.in',
+        onComplete: () => {
+          animatedProjectIdRef.current = null;
+          onClose();
+        },
+      });
+    } else {
+      animatedProjectIdRef.current = null;
+      onClose();
+    }
+  };
+
+  // Escape key listener
+  useEffect(() => {
+    if (!project) return;
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
     window.addEventListener('keydown', handleKeyDown);
-
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [project, onClose]);
+  }, [project]);
 
   if (!project) return null;
 
@@ -38,6 +65,7 @@ export default function ProjectOverlay({ project, onClose }: ProjectOverlayProps
     <div
       ref={overlayRef}
       className="fixed inset-0 z-[60] bg-[#0b0b0b] flex flex-col overflow-y-auto custom-scrollbar select-text"
+      style={{ cursor: 'auto' }}
     >
       {/* Sticky Top Header */}
       <div className="sticky top-0 z-20 flex justify-between items-center px-6 md:px-16 py-6 bg-[#0b0b0b] border-b border-[#cee49f]/15">
@@ -53,8 +81,9 @@ export default function ProjectOverlay({ project, onClose }: ProjectOverlayProps
 
         {/* Close Button */}
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="pill flex items-center gap-2 hover:bg-[#cee49f] hover:text-[#0b0b0b] transition-colors"
+          style={{ cursor: 'pointer' }}
           aria-label="Close case study"
         >
           <span>CLOSE</span>
@@ -179,6 +208,7 @@ export default function ProjectOverlay({ project, onClose }: ProjectOverlayProps
                 target="_blank"
                 rel="noreferrer"
                 className="inline-flex items-center gap-2 px-6 py-3 rounded-[2px] bg-[#cee49f] text-[#0b0b0b] font-mono-medium text-xs uppercase tracking-wider font-bold hover:opacity-90 transition-opacity"
+                style={{ cursor: 'pointer' }}
               >
                 <span>OPEN PROJECT LINK</span>
                 <span>↗</span>

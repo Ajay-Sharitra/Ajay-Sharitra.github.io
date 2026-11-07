@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { PROJECTS, Project } from './data/projects';
 import Navigation, { ViewMode, ModalTab } from './components/Navigation';
 import Clock from './components/Clock';
@@ -27,24 +27,44 @@ export default function App() {
 
   const isOverlayActive = selectedCaseStudy !== null || activeModal !== 'none';
 
-  // Open case study safely without cursor or raycasting flicker
-  const handleOpenCaseStudy = (proj: Project) => {
+  // Stable handlers preventing child re-mounting
+  const handleOpenCaseStudy = useCallback((proj: Project) => {
     setIsHoveringProject(false);
     setSelectedCaseStudy(proj);
-  };
+  }, []);
 
-  // Open nav modal safely
-  const handleOpenModal = (tab: ModalTab) => {
+  const handleCloseCaseStudy = useCallback(() => {
+    setSelectedCaseStudy(null);
+    setIsHoveringProject(false);
+  }, []);
+
+  const handleOpenModal = useCallback((tab: ModalTab) => {
     setIsHoveringProject(false);
     setActiveModal(tab);
-  };
+  }, []);
 
-  // Change project index with previous index tracking
-  const handleIndexChange = (newIndex: number) => {
-    if (newIndex === currentIndex) return;
-    setPrevIndex(currentIndex);
-    setCurrentIndex(newIndex);
-  };
+  const handleCloseModal = useCallback(() => {
+    setActiveModal('none');
+    setIsHoveringProject(false);
+  }, []);
+
+  const handleIndexChange = useCallback((newIndex: number) => {
+    setCurrentIndex((curr) => {
+      if (newIndex === curr) return curr;
+      setPrevIndex(curr);
+      return newIndex;
+    });
+  }, []);
+
+  const handleSelectView = useCallback((mode: ViewMode) => {
+    setIsHoveringProject(false);
+    setCurrentView(mode);
+    if (mode === 'orbit') {
+      setCursorLabel('DRAG ORBIT');
+    } else {
+      setCursorLabel('VIEW CASE');
+    }
+  }, []);
 
   // Keyboard, wheel, and touch gestures
   useSlideController({
@@ -52,15 +72,7 @@ export default function App() {
     currentIndex,
     onIndexChange: handleIndexChange,
     currentView,
-    onViewChange: (mode) => {
-      setIsHoveringProject(false);
-      setCurrentView(mode);
-      if (mode === 'orbit') {
-        setCursorLabel('DRAG ORBIT');
-      } else {
-        setCursorLabel('VIEW CASE');
-      }
-    },
+    onViewChange: handleSelectView,
     isEnabled: isPreloaded && !isOverlayActive,
   });
 
@@ -110,12 +122,7 @@ export default function App() {
       {/* 4. Fixed System UI Shell */}
       <Navigation
         currentView={currentView}
-        onSelectView={(mode) => {
-          setIsHoveringProject(false);
-          setCurrentView(mode);
-          if (mode === 'orbit') setCursorLabel('DRAG ORBIT');
-          else setCursorLabel('VIEW CASE');
-        }}
+        onSelectView={handleSelectView}
         activeModal={activeModal}
         onOpenModal={handleOpenModal}
         projectCount={PROJECTS.length}
@@ -171,29 +178,20 @@ export default function App() {
       {/* Case Study Detail Overlay */}
       <ProjectOverlay
         project={selectedCaseStudy}
-        onClose={() => {
-          setSelectedCaseStudy(null);
-          setIsHoveringProject(false);
-        }}
+        onClose={handleCloseCaseStudy}
       />
 
       {/* Profile Overlay */}
       <ProfileOverlay
         isOpen={activeModal === 'profile'}
-        onClose={() => {
-          setActiveModal('none');
-          setIsHoveringProject(false);
-        }}
+        onClose={handleCloseModal}
         onOpenConnect={() => handleOpenModal('connect')}
       />
 
       {/* Connect Overlay */}
       <ConnectOverlay
         isOpen={activeModal === 'connect'}
-        onClose={() => {
-          setActiveModal('none');
-          setIsHoveringProject(false);
-        }}
+        onClose={handleCloseModal}
       />
     </div>
   );

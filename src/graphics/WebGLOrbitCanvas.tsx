@@ -11,6 +11,7 @@ interface WebGLOrbitCanvasProps {
   isOverlayOpen?: boolean;
 }
 
+
 export default function WebGLOrbitCanvas({
   projects,
   currentIndex,
@@ -20,11 +21,37 @@ export default function WebGLOrbitCanvas({
   isOverlayOpen = false,
 }: WebGLOrbitCanvasProps) {
   const mountRef = useRef<HTMLDivElement>(null);
+
+  // Keep callback refs stable to prevent Three.js scene destruction on re-render
+  const onSelectProjectRef = useRef(onSelectProject);
+  const onOpenProjectRef = useRef(onOpenProject);
+  const onHoverCardRef = useRef(onHoverCard);
   const isOverlayOpenRef = useRef(isOverlayOpen);
+  const currentIndexRef = useRef(currentIndex);
+  const setExternalAngleRef = useRef<((idx: number) => void) | null>(null);
+
+  useEffect(() => {
+    onSelectProjectRef.current = onSelectProject;
+  }, [onSelectProject]);
+
+  useEffect(() => {
+    onOpenProjectRef.current = onOpenProject;
+  }, [onOpenProject]);
+
+  useEffect(() => {
+    onHoverCardRef.current = onHoverCard;
+  }, [onHoverCard]);
 
   useEffect(() => {
     isOverlayOpenRef.current = isOverlayOpen;
   }, [isOverlayOpen]);
+
+  useEffect(() => {
+    currentIndexRef.current = currentIndex;
+    if (setExternalAngleRef.current) {
+      setExternalAngleRef.current(currentIndex);
+    }
+  }, [currentIndex]);
 
   useEffect(() => {
     const container = mountRef.current;
@@ -32,50 +59,56 @@ export default function WebGLOrbitCanvas({
 
     // 1. Scene, Camera, Renderer
     const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0b0b0b, 0.045);
+    scene.fog = new THREE.FogExp2(0x0b0b0b, 0.035);
 
     const camera = new THREE.PerspectiveCamera(
-      52,
+      48,
       window.innerWidth / window.innerHeight,
       0.1,
       100
     );
-    camera.position.set(0, 0, 11);
+    camera.position.set(0, 0, 11.5);
 
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    const renderer = new THREE.WebGLRenderer({
+      antialias: true,
+      alpha: true,
+      powerPreference: 'high-performance',
+    });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight);
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.1;
+    renderer.toneMappingExposure = 1.15;
     container.appendChild(renderer.domElement);
 
     // 2. Lighting
-    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.6);
     scene.add(ambientLight);
 
     const dirLight = new THREE.DirectionalLight(0xcee49f, 2.5);
     dirLight.position.set(5, 8, 10);
     scene.add(dirLight);
 
-    const greenPoint = new THREE.PointLight(0xcee49f, 3, 20);
+    const greenPoint = new THREE.PointLight(0xcee49f, 2.8, 22);
     greenPoint.position.set(0, -2, 6);
     scene.add(greenPoint);
 
     // 3. Orbit Group
     const orbitGroup = new THREE.Group();
+    orbitGroup.position.set(0, 0, -0.4);
     scene.add(orbitGroup);
 
     const textureLoader = new THREE.TextureLoader();
-    const cardGeometry = new THREE.PlaneGeometry(5.2, 3.2, 16, 16);
+    const cardGeometry = new THREE.PlaneGeometry(5.2, 3.25, 16, 16);
     const cardMeshes: THREE.Mesh[] = [];
 
-    const radius = 7.5;
+    const radius = 6.8;
     const count = projects.length;
+    const stepAngle = (Math.PI * 2) / count;
 
     projects.forEach((proj, i) => {
       const angle = (i / count) * Math.PI * 2;
       const x = Math.sin(angle) * radius;
-      const z = Math.cos(angle) * radius - 2;
+      const z = Math.cos(angle) * radius;
 
       const texture = textureLoader.load(proj.cover);
       texture.minFilter = THREE.LinearFilter;
@@ -90,15 +123,14 @@ export default function WebGLOrbitCanvas({
 
       const mesh = new THREE.Mesh(cardGeometry, material);
       mesh.position.set(x, 0, z);
-      // Face outward towards viewer
-      mesh.rotation.y = angle + Math.PI;
+      // Face outward from cylinder center
+      mesh.rotation.y = angle;
 
-      // Custom attributes for raycasting
       mesh.userData = { index: i, project: proj };
       orbitGroup.add(mesh);
       cardMeshes.push(mesh);
 
-      // Add border outline without raycasting
+      // Frame outline
       const edgeGeo = new THREE.EdgesGeometry(cardGeometry);
       const edgeMat = new THREE.LineBasicMaterial({
         color: 0xcee49f,
@@ -110,7 +142,6 @@ export default function WebGLOrbitCanvas({
       mesh.add(wireframe);
     });
 
-    // Helper to find parent card mesh from any child hit
     const getCardMeshFromHit = (hitObject: THREE.Object3D): THREE.Mesh | null => {
       let curr: THREE.Object3D | null = hitObject;
       while (curr) {
@@ -122,133 +153,137 @@ export default function WebGLOrbitCanvas({
       return null;
     };
 
-    // Helper to safely highlight/unhighlight card
     const setHighlight = (mesh: THREE.Mesh | null, active: boolean) => {
       if (!mesh) return;
       const mat = mesh.material as THREE.MeshStandardMaterial;
       if (mat && 'emissive' in mat && mat.emissive && typeof mat.emissive.setHex === 'function') {
         mat.emissive.setHex(active ? 0x223311 : 0x000000);
       }
-      mesh.scale.set(active ? 1.06 : 1, active ? 1.06 : 1, active ? 1.06 : 1);
+      mesh.scale.set(active ? 1.05 : 1, active ? 1.05 : 1, active ? 1.05 : 1);
     };
 
-    // Set initial rotation so current project faces camera
-    const initialAngle = -(currentIndex / count) * Math.PI * 2;
-    orbitGroup.rotation.y = initialAngle;
-
-    // 4. Robust Dragging, Momentum & Touch/Mouse Handling
+    // Initial angle
+    const initialAngle = -(currentIndexRef.current / count) * Math.PI * 2;
+    let currentRotationY = initialAngle;
     let targetRotationY = initialAngle;
     let targetTiltX = 0;
+    let currentTiltX = 0;
     let velocityY = 0;
-    let isDragging = false;
-    let dragStartX = 0;
-    let dragStartY = 0;
-    let lastPointerX = 0;
-    let lastPointerY = 0;
-    let hasMovedSignificantly = false;
+
+    // External jump to project
+    setExternalAngleRef.current = (idx: number) => {
+      targetRotationY = -(idx / count) * Math.PI * 2;
+    };
+
+    // 4. Fluid 1:1 Pointer Tracking, Inertia Momentum & Snapping
+    let isPointerDown = false;
+    let hasMoved = false;
+    let startX = 0;
+    let startY = 0;
+    let lastX = 0;
+    let lastY = 0;
+    let lastActiveIndex = currentIndexRef.current;
 
     const raycaster = new THREE.Raycaster();
     const mouse = new THREE.Vector2(-999, -999);
     let hoveredMesh: THREE.Mesh | null = null;
 
+    const dom = renderer.domElement;
+
     const onPointerDown = (e: PointerEvent) => {
       if (isOverlayOpenRef.current) return;
-      isDragging = true;
-      dragStartX = e.clientX;
-      dragStartY = e.clientY;
-      lastPointerX = e.clientX;
-      lastPointerY = e.clientY;
-      hasMovedSignificantly = false;
+      isPointerDown = true;
+      hasMoved = false;
+      startX = e.clientX;
+      startY = e.clientY;
+      lastX = e.clientX;
+      lastY = e.clientY;
       velocityY = 0;
 
       try {
-        (e.target as HTMLElement)?.setPointerCapture?.(e.pointerId);
+        dom.setPointerCapture(e.pointerId);
       } catch {}
     };
 
     const onPointerMove = (e: PointerEvent) => {
       if (isOverlayOpenRef.current) return;
 
-      const rect = container.getBoundingClientRect();
+      const rect = dom.getBoundingClientRect();
       mouse.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       mouse.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
 
-      if (isDragging) {
-        const deltaX = e.clientX - lastPointerX;
-        const deltaY = e.clientY - lastPointerY;
+      if (isPointerDown) {
+        const deltaX = e.clientX - lastX;
+        const deltaY = e.clientY - lastY;
 
-        if (Math.hypot(e.clientX - dragStartX, e.clientY - dragStartY) > 6) {
-          hasMovedSignificantly = true;
+        if (Math.hypot(e.clientX - startX, e.clientY - startY) > 5) {
+          hasMoved = true;
         }
 
-        // Apply rotation directly with sensitivity
-        const sensitivity = 0.007;
-        targetRotationY += deltaX * sensitivity;
-        velocityY = deltaX * sensitivity;
-        targetTiltX = Math.max(-0.4, Math.min(0.4, targetTiltX + deltaY * 0.002));
+        // Direct responsive rotation tracking (cards move in real-time with finger/mouse)
+        const radPerPixel = (Math.PI * 2) / (window.innerWidth * 0.9);
+        const rotationDelta = deltaX * radPerPixel;
 
-        lastPointerX = e.clientX;
-        lastPointerY = e.clientY;
+        currentRotationY += rotationDelta;
+        targetRotationY = currentRotationY;
+        velocityY = rotationDelta * 0.85;
+
+        targetTiltX = Math.max(-0.25, Math.min(0.25, targetTiltX + deltaY * 0.0015));
+
+        lastX = e.clientX;
+        lastY = e.clientY;
       } else {
-        // Subtle ambient tilt when moving mouse
-        targetTiltX = -mouse.y * 0.15;
+        targetTiltX = -mouse.y * 0.1;
       }
     };
 
     const onPointerUp = (e: PointerEvent) => {
-      isDragging = false;
-      try {
-        (e.target as HTMLElement)?.releasePointerCapture?.(e.pointerId);
-      } catch {}
-    };
+      if (!isPointerDown) return;
+      isPointerDown = false;
 
-    const onPointerCancel = () => {
-      isDragging = false;
+      try {
+        dom.releasePointerCapture(e.pointerId);
+      } catch {}
+
+      // If user did not drag, treat as a clean click!
+      if (!hasMoved && !isOverlayOpenRef.current) {
+        raycaster.setFromCamera(mouse, camera);
+        const intersects = raycaster.intersectObjects(cardMeshes, true);
+        if (intersects.length > 0) {
+          const hit = getCardMeshFromHit(intersects[0].object);
+          if (hit && hit.userData?.project) {
+            const { index, project } = hit.userData;
+            if (hoveredMesh) {
+              setHighlight(hoveredMesh, false);
+              hoveredMesh = null;
+            }
+            onHoverCardRef.current?.(false);
+            onSelectProjectRef.current(index);
+            onOpenProjectRef.current(project);
+          }
+        }
+      }
     };
 
     const onWheel = (e: WheelEvent) => {
       if (isOverlayOpenRef.current) return;
       const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
-      targetRotationY += delta * 0.0025;
-      velocityY = delta * 0.0015;
+      const rad = (Math.sign(delta) * Math.min(Math.abs(delta), 100)) / 450;
+      targetRotationY -= rad;
+      velocityY = -rad * 0.2;
     };
 
-    const onClick = (e: MouseEvent) => {
-      if (isOverlayOpenRef.current) return;
-      // If user was dragging, do not treat as a click to open project!
-      if (hasMovedSignificantly) return;
-
-      raycaster.setFromCamera(mouse, camera);
-      const intersects = raycaster.intersectObjects(cardMeshes, true);
-      if (intersects.length > 0) {
-        const hit = getCardMeshFromHit(intersects[0].object);
-        if (hit && hit.userData?.project) {
-          const { index, project } = hit.userData;
-          if (hoveredMesh) {
-            setHighlight(hoveredMesh, false);
-            hoveredMesh = null;
-          }
-          onHoverCard?.(false);
-          onSelectProject(index);
-          onOpenProject(project);
-        }
-      }
-    };
-
-    const dom = renderer.domElement;
     dom.addEventListener('pointerdown', onPointerDown);
     window.addEventListener('pointermove', onPointerMove);
     window.addEventListener('pointerup', onPointerUp);
-    window.addEventListener('pointercancel', onPointerCancel);
+    window.addEventListener('pointercancel', onPointerUp);
     dom.addEventListener('wheel', onWheel, { passive: true });
-    dom.addEventListener('click', onClick);
 
-    // 5. Render Loop with Inertia & Safe Hover Guard
+    // 5. Render Loop with High-Craft Physics
     let animId: number;
     const clock = new THREE.Clock();
 
     const animate = () => {
-      // If overlay is open, completely skip hover detection and updates
       if (isOverlayOpenRef.current) {
         if (hoveredMesh) {
           setHighlight(hoveredMesh, false);
@@ -259,24 +294,42 @@ export default function WebGLOrbitCanvas({
         return;
       }
 
-      // Smooth inertia momentum decay when not actively dragging
-      if (!isDragging) {
-        targetRotationY += velocityY;
-        velocityY *= 0.92;
+      // Physics update
+      if (!isPointerDown) {
+        // Apply inertia momentum
+        if (Math.abs(velocityY) > 0.0005) {
+          targetRotationY += velocityY;
+          currentRotationY += velocityY;
+          velocityY *= 0.91; // Smooth friction decay
+        } else {
+          velocityY = 0;
+          // Gently snap to nearest card when stopped
+          const nearestCardIndex = Math.round(-targetRotationY / stepAngle);
+          const snapTarget = -nearestCardIndex * stepAngle;
+          targetRotationY += (snapTarget - targetRotationY) * 0.08;
+          currentRotationY += (targetRotationY - currentRotationY) * 0.12;
+
+          // Notify index sync when aligned with front card
+          const activeIndex = ((nearestCardIndex % count) + count) % count;
+          if (activeIndex !== lastActiveIndex) {
+            lastActiveIndex = activeIndex;
+            onSelectProjectRef.current(activeIndex);
+          }
+        }
       }
 
-      // Smooth interpolation for orbit rotation
-      orbitGroup.rotation.y += (targetRotationY - orbitGroup.rotation.y) * 0.1;
-      orbitGroup.rotation.x += (targetTiltX - orbitGroup.rotation.x) * 0.1;
+      currentTiltX += (targetTiltX - currentTiltX) * 0.1;
+      orbitGroup.rotation.y = currentRotationY;
+      orbitGroup.rotation.x = currentTiltX;
 
-      // Gentle floating wave motion
-      const time = clock.getElapsedTime();
+      // Subtle float animation
+      const elapsedTime = clock.getElapsedTime();
       cardMeshes.forEach((mesh, idx) => {
-        mesh.position.y = Math.sin(time * 1.5 + idx * 1.2) * 0.18;
+        mesh.position.y = Math.sin(elapsedTime * 1.5 + idx * 1.25) * 0.14;
       });
 
-      // Raycasting for hover state (disabled while dragging or moving fast)
-      if (!isDragging && Math.abs(velocityY) < 0.02) {
+      // Hover raycasting (active only when stationary)
+      if (!isPointerDown && !hasMoved && Math.abs(velocityY) < 0.005) {
         raycaster.setFromCamera(mouse, camera);
         const intersects = raycaster.intersectObjects(cardMeshes, true);
 
@@ -288,17 +341,17 @@ export default function WebGLOrbitCanvas({
             }
             hoveredMesh = hit;
             setHighlight(hit, true);
-            onHoverCard?.(true);
+            onHoverCardRef.current?.(true);
           }
         } else if (hoveredMesh) {
           setHighlight(hoveredMesh, false);
           hoveredMesh = null;
-          onHoverCard?.(false);
+          onHoverCardRef.current?.(false);
         }
       } else if (hoveredMesh) {
         setHighlight(hoveredMesh, false);
         hoveredMesh = null;
-        onHoverCard?.(false);
+        onHoverCardRef.current?.(false);
       }
 
       renderer.render(scene, camera);
@@ -306,7 +359,6 @@ export default function WebGLOrbitCanvas({
     };
     animate();
 
-    // 6. Resize
     const onResize = () => {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
@@ -319,9 +371,8 @@ export default function WebGLOrbitCanvas({
       dom.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('pointermove', onPointerMove);
       window.removeEventListener('pointerup', onPointerUp);
-      window.removeEventListener('pointercancel', onPointerCancel);
+      window.removeEventListener('pointercancel', onPointerUp);
       dom.removeEventListener('wheel', onWheel);
-      dom.removeEventListener('click', onClick);
       window.removeEventListener('resize', onResize);
 
       cardMeshes.forEach((m) => {
@@ -334,15 +385,18 @@ export default function WebGLOrbitCanvas({
         dom.parentElement.removeChild(dom);
       }
     };
-  }, [projects, currentIndex, onSelectProject, onOpenProject, onHoverCard]);
+  }, [projects]);
 
   return (
-    <div className="fixed inset-0 z-10 select-none cursor-grab active:cursor-grabbing">
+    <div
+      className="fixed inset-0 z-10 select-none cursor-grab active:cursor-grabbing"
+      style={{ touchAction: 'none' }}
+    >
       <div ref={mountRef} className="w-full h-full" />
-      {/* Orbit UI Instructions */}
       <div className="blend mono absolute top-[calc(70*var(--px))] left-1/2 -translate-x-1/2 text-center pointer-events-none opacity-60">
         DRAG OR SCROLL TO ROTATE 3D ORBIT · CLICK TO EXPLORE PROJECT
       </div>
     </div>
   );
 }
+

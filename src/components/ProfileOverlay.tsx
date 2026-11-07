@@ -14,25 +14,49 @@ export default function ProfileOverlay({
   onOpenConnect,
 }: ProfileOverlayProps) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const wasOpenRef = useRef(false);
+
+  useEffect(() => {
+    if (isOpen && !wasOpenRef.current) {
+      wasOpenRef.current = true;
+      if (containerRef.current) {
+        gsap.fromTo(
+          containerRef.current,
+          { yPercent: 100, opacity: 0 },
+          { yPercent: 0, opacity: 1, duration: 0.45, ease: 'power4.out' }
+        );
+      }
+    } else if (!isOpen) {
+      wasOpenRef.current = false;
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    if (containerRef.current) {
+      gsap.to(containerRef.current, {
+        yPercent: 100,
+        opacity: 0,
+        duration: 0.28,
+        ease: 'power3.in',
+        onComplete: () => {
+          wasOpenRef.current = false;
+          onClose();
+        },
+      });
+    } else {
+      wasOpenRef.current = false;
+      onClose();
+    }
+  };
 
   useEffect(() => {
     if (!isOpen) return;
-
-    if (containerRef.current) {
-      gsap.fromTo(
-        containerRef.current,
-        { yPercent: 100, opacity: 0 },
-        { yPercent: 0, opacity: 1, duration: 0.65, ease: 'power4.out' }
-      );
-    }
-
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') onClose();
+      if (e.key === 'Escape') handleClose();
     };
     window.addEventListener('keydown', handleKeyDown);
-
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -40,6 +64,7 @@ export default function ProfileOverlay({
     <div
       ref={containerRef}
       className="fixed inset-0 z-[60] bg-[#0b0b0b] flex flex-col overflow-y-auto custom-scrollbar select-text text-[#cee49f]"
+      style={{ cursor: 'auto' }}
     >
       {/* Top Header */}
       <div className="sticky top-0 z-20 flex justify-between items-center px-6 md:px-16 py-6 bg-[#0b0b0b] border-b border-[#cee49f]/15">
@@ -54,8 +79,9 @@ export default function ProfileOverlay({
         </div>
 
         <button
-          onClick={onClose}
+          onClick={handleClose}
           className="pill flex items-center gap-2 hover:bg-[#cee49f] hover:text-[#0b0b0b] transition-colors"
+          style={{ cursor: 'pointer' }}
           aria-label="Close profile"
         >
           <span>CLOSE</span>
@@ -197,6 +223,7 @@ export default function ProfileOverlay({
               onOpenConnect();
             }}
             className="mt-6 px-8 py-3 bg-[#cee49f] text-[#0b0b0b] font-mono-medium font-bold text-xs uppercase tracking-wider rounded-[2px] hover:opacity-90 transition-opacity"
+            style={{ cursor: 'pointer' }}
           >
             GET IN TOUCH ↗
           </button>
