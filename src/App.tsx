@@ -1,197 +1,214 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { PROJECTS, Project } from './data/projects';
-import Navigation, { ViewMode, ModalTab } from './components/Navigation';
-import Clock from './components/Clock';
-import Stepper from './components/Stepper';
-import Ruler from './components/Ruler';
-import CustomCursor from './components/CustomCursor';
-import Preloader from './components/Preloader';
-import ProjectOverlay from './components/ProjectOverlay';
-import ProfileOverlay from './components/ProfileOverlay';
-import ConnectOverlay from './components/ConnectOverlay';
-import SliderView from './views/SliderView';
-import GalleryView from './views/GalleryView';
-import WebGLSlideCanvas from './graphics/WebGLSlideCanvas';
-import WebGLOrbitCanvas from './graphics/WebGLOrbitCanvas';
-import { useSlideController } from './hooks/useSlideController';
+import { initGSAPConfig, refreshScrollTriggers } from './animations/gsapConfig';
+import { useSmoothScroll } from './hooks/useSmoothScroll';
+import Preloader from './components/Preloader/Preloader';
+import CustomCursor, { CustomCursorHandle } from './components/CustomCursor/CustomCursor';
+import Navigation from './components/Navigation/Navigation';
+import Hero from './components/Hero/Hero';
+import About from './components/About/About';
+import Expertise from './components/Expertise/Expertise';
+import TechStack from './components/TechStack/TechStack';
+import Projects from './components/Projects/Projects';
+import CaseStudies from './components/CaseStudies/CaseStudies';
+import Experience from './components/Experience/Experience';
+import TechnicalLab from './components/TechnicalLab/TechnicalLab';
+import Contact from './components/Contact/Contact';
+import Footer from './components/Footer/Footer';
 
 export default function App() {
-  const [isPreloaded, setIsPreloaded] = useState(false);
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [prevIndex, setPrevIndex] = useState(0);
-  const [currentView, setCurrentView] = useState<ViewMode>('slider');
-  const [activeModal, setActiveModal] = useState<ModalTab>('none');
-  const [selectedCaseStudy, setSelectedCaseStudy] = useState<Project | null>(null);
-  const [isHoveringProject, setIsHoveringProject] = useState(false);
-  const [cursorLabel, setCursorLabel] = useState('VIEW CASE');
+  const [isLoaded, setIsLoaded] = useState(false);
+  const [activeSection, setActiveSection] = useState('home');
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
-  const isOverlayActive = selectedCaseStudy !== null || activeModal !== 'none';
+  const cursorApiRef = useRef<CustomCursorHandle | null>(null);
 
-  // Stable handlers preventing child re-mounting
-  const handleOpenCaseStudy = useCallback((proj: Project) => {
-    setIsHoveringProject(false);
-    setSelectedCaseStudy(proj);
+  const isOverlayLocked = selectedProject !== null || contactDrawerOpen || mobileMenuOpen;
+  const { scrollTo } = useSmoothScroll(isOverlayLocked);
+
+  useEffect(() => {
+    initGSAPConfig();
   }, []);
+
+  // Synchronize Case Study Overlay with URL Hash & Browser History (Back/Forward button support)
+  useEffect(() => {
+    const syncFromLocation = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#case-study/')) {
+        const slug = hash.replace('#case-study/', '').trim();
+        const found = PROJECTS.find((p) => p.slug === slug);
+        if (found) {
+          setSelectedProject(found);
+          return;
+        }
+      }
+      setSelectedProject(null);
+    };
+
+    syncFromLocation();
+    window.addEventListener('popstate', syncFromLocation);
+    window.addEventListener('hashchange', syncFromLocation);
+    return () => {
+      window.removeEventListener('popstate', syncFromLocation);
+      window.removeEventListener('hashchange', syncFromLocation);
+    };
+  }, []);
+
+  // Zero-re-render cursor hover dispatcher
+  const handleCursorHover = useCallback((hovering: boolean, label = 'VIEW') => {
+    cursorApiRef.current?.setHover(hovering, label);
+  }, []);
+
+  const handleOpenCaseStudy = useCallback(
+    (project: Project) => {
+      handleCursorHover(false);
+      setMobileMenuOpen(false);
+      setSelectedProject(project);
+      const targetHash = `#case-study/${project.slug}`;
+      if (window.location.hash !== targetHash) {
+        window.history.pushState({ caseStudy: project.slug }, '', targetHash);
+      }
+    },
+    [handleCursorHover]
+  );
 
   const handleCloseCaseStudy = useCallback(() => {
-    setSelectedCaseStudy(null);
-    setIsHoveringProject(false);
-  }, []);
-
-  const handleOpenModal = useCallback((tab: ModalTab) => {
-    setIsHoveringProject(false);
-    setActiveModal(tab);
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setActiveModal('none');
-    setIsHoveringProject(false);
-  }, []);
-
-  const handleIndexChange = useCallback((newIndex: number) => {
-    setCurrentIndex((curr) => {
-      if (newIndex === curr) return curr;
-      setPrevIndex(curr);
-      return newIndex;
-    });
-  }, []);
-
-  const handleSelectView = useCallback((mode: ViewMode) => {
-    setIsHoveringProject(false);
-    setCurrentView(mode);
-    if (mode === 'orbit') {
-      setCursorLabel('DRAG ORBIT');
-    } else {
-      setCursorLabel('VIEW CASE');
+    handleCursorHover(false);
+    setSelectedProject(null);
+    if (window.location.hash.startsWith('#case-study/')) {
+      window.history.pushState(null, '', window.location.pathname);
     }
+    refreshScrollTriggers();
+  }, [handleCursorHover]);
+
+  const handleNavigateSection = useCallback(
+    (sectionId: string) => {
+      handleCursorHover(false);
+      if (selectedProject) {
+        setSelectedProject(null);
+        if (window.location.hash.startsWith('#case-study/')) {
+          window.history.pushState(null, '', window.location.pathname);
+        }
+      }
+      setContactDrawerOpen(false);
+      setMobileMenuOpen(false);
+      setActiveSection(sectionId);
+      scrollTo(`#${sectionId}`);
+    },
+    [selectedProject, scrollTo, handleCursorHover]
+  );
+
+  // Track active section during scroll using rAF-throttled handler
+  useEffect(() => {
+    const sectionIds = ['home', 'about', 'expertise', 'arsenal', 'work', 'experience', 'lab', 'contact'];
+    let ticking = false;
+
+    const updateActiveSection = () => {
+      const scrollPos = window.scrollY + window.innerHeight * 0.35;
+      for (let i = sectionIds.length - 1; i >= 0; i--) {
+        const el = document.getElementById(sectionIds[i]);
+        if (el && el.offsetTop <= scrollPos) {
+          setActiveSection((prev) => (prev !== sectionIds[i] ? sectionIds[i] : prev));
+          break;
+        }
+      }
+      ticking = false;
+    };
+
+    const handleScroll = () => {
+      if (!ticking) {
+        ticking = true;
+        requestAnimationFrame(updateActiveSection);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Keyboard, wheel, and touch gestures
-  useSlideController({
-    total: PROJECTS.length,
-    currentIndex,
-    onIndexChange: handleIndexChange,
-    currentView,
-    onViewChange: handleSelectView,
-    isEnabled: isPreloaded && !isOverlayActive,
-  });
-
-  const currentProject = PROJECTS[currentIndex];
+  const handlePreloaderComplete = useCallback(() => {
+    setIsLoaded(true);
+    refreshScrollTriggers();
+  }, []);
 
   return (
-    <div className="relative w-screen h-screen overflow-hidden bg-[#0b0b0b] text-[#cee49f]">
-      {/* 1. Initial Launch Preloader */}
-      {!isPreloaded && (
-        <Preloader onComplete={() => setIsPreloaded(true)} />
-      )}
+    <div className="relative min-h-screen min-h-[100dvh] w-full max-w-[100vw] overflow-x-clip bg-[#050505] text-[#f5f5f5] selection:bg-[#d60407] selection:text-white">
+      {/* Subtle Film Grain */}
+      <div className="film-grain" />
 
-      {/* 2. Physics-Based Custom Cursor (disabled during overlays to eliminate flicker) */}
-      <CustomCursor
-        label={cursorLabel}
-        isHoveringProject={!isOverlayActive && isHoveringProject}
-        active={!isOverlayActive}
-      />
+      {/* SECTION 01 — Cinematic Introduction Preloader */}
+      {!isLoaded && <Preloader onComplete={handlePreloaderComplete} />}
 
-      {/* 3. Background WebGL Shaders & 3D Orbit */}
-      {/* Slide mode background displacement canvas */}
-      <div className={`transition-opacity duration-700 ${currentView === 'slider' ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
-        <WebGLSlideCanvas
-          projects={PROJECTS}
-          currentIndex={currentIndex}
-          prevIndex={prevIndex}
-          isTransitioning={false}
-        />
-      </div>
+      {/* Custom Precision Cursor (Zero React Re-renders) */}
+      <CustomCursor cursorApiRef={cursorApiRef} />
 
-      {/* Orbit 3D canvas (Mode 03) */}
-      {currentView === 'orbit' && (
-        <WebGLOrbitCanvas
-          projects={PROJECTS}
-          currentIndex={currentIndex}
-          onSelectProject={handleIndexChange}
-          onOpenProject={handleOpenCaseStudy}
-          onHoverCard={(hovering) => {
-            if (isOverlayActive) return;
-            setIsHoveringProject(hovering);
-            setCursorLabel(hovering ? 'OPEN CASE' : 'DRAG ORBIT');
-          }}
-          isOverlayOpen={isOverlayActive}
-        />
-      )}
-
-      {/* 4. Fixed System UI Shell */}
+      {/* Fixed Minimal Navigation & Mobile Overlay */}
       <Navigation
-        currentView={currentView}
-        onSelectView={handleSelectView}
-        activeModal={activeModal}
-        onOpenModal={handleOpenModal}
-        projectCount={PROJECTS.length}
+        activeSection={activeSection}
+        mobileMenuOpen={mobileMenuOpen}
+        onToggleMobileMenu={setMobileMenuOpen}
+        onNavigate={handleNavigateSection}
+        onOpenContactDrawer={() => {
+          setMobileMenuOpen(false);
+          setContactDrawerOpen(true);
+        }}
+        onCursorHover={handleCursorHover}
       />
 
-      <Clock />
-
-      {/* Bottom Stepper & Ruler controls */}
-      {currentView === 'slider' && (
-        <Stepper
-          currentIndex={currentIndex}
-          total={PROJECTS.length}
-          onSelect={handleIndexChange}
+      {/* Main Vertical Experience */}
+      <main>
+        {/* SECTION 02 — Hero Experience */}
+        <Hero
+          isReady={isLoaded}
+          onExploreWork={() => handleNavigateSection('work')}
+          onOpenContact={() => setContactDrawerOpen(true)}
+          onCursorHover={handleCursorHover}
         />
-      )}
 
-      {currentView === 'gallery' && (
-        <Ruler
-          currentIndex={currentIndex}
-          total={PROJECTS.length}
-          onSelect={handleIndexChange}
+        {/* SECTION 03 — About Me */}
+        <About onCursorHover={handleCursorHover} />
+
+        {/* SECTION 04 — Expertise */}
+        <Expertise onCursorHover={handleCursorHover} />
+
+        {/* SECTION 05 — Technical Arsenal */}
+        <TechStack onCursorHover={handleCursorHover} />
+
+        {/* SECTION 06 — Selected Projects */}
+        <Projects
+          onSelectProject={handleOpenCaseStudy}
+          onCursorHover={handleCursorHover}
         />
-      )}
 
-      {/* 5. Main Content Views */}
-      {currentView === 'slider' && (
-        <SliderView
-          project={currentProject}
-          onOpenProject={handleOpenCaseStudy}
-          onHoverProject={(hovering) => {
-            if (isOverlayActive) return;
-            setIsHoveringProject(hovering);
-            setCursorLabel('VIEW CASE');
-          }}
+        {/* SECTION 08 — Professional Experience */}
+        <Experience onCursorHover={handleCursorHover} />
+
+        {/* SECTION 09 — Experimentation / Technical Lab */}
+        <TechnicalLab onCursorHover={handleCursorHover} />
+
+        {/* SECTION 10 — Contact */}
+        <Contact
+          isDrawerOpen={contactDrawerOpen}
+          onOpenDrawer={() => setContactDrawerOpen(true)}
+          onCloseDrawer={() => setContactDrawerOpen(false)}
+          onCursorHover={handleCursorHover}
         />
-      )}
+      </main>
 
-      {currentView === 'gallery' && (
-        <GalleryView
-          projects={PROJECTS}
-          currentIndex={currentIndex}
-          onSelectProject={handleIndexChange}
-          onOpenProject={handleOpenCaseStudy}
-          onHoverProject={(hovering) => {
-            if (isOverlayActive) return;
-            setIsHoveringProject(hovering);
-            setCursorLabel('EXPLORE');
-          }}
-        />
-      )}
+      {/* Visually Powerful Footer */}
+      <Footer
+        onBackToTop={() => handleNavigateSection('home')}
+        onCursorHover={handleCursorHover}
+      />
 
-      {/* 6. Overlays */}
-      {/* Case Study Detail Overlay */}
-      <ProjectOverlay
-        project={selectedCaseStudy}
+      {/* SECTION 07 — Project Case Studies Fullscreen Overlay */}
+      <CaseStudies
+        project={selectedProject}
         onClose={handleCloseCaseStudy}
-      />
-
-      {/* Profile Overlay */}
-      <ProfileOverlay
-        isOpen={activeModal === 'profile'}
-        onClose={handleCloseModal}
-        onOpenConnect={() => handleOpenModal('connect')}
-      />
-
-      {/* Connect Overlay */}
-      <ConnectOverlay
-        isOpen={activeModal === 'connect'}
-        onClose={handleCloseModal}
+        onSelectProject={handleOpenCaseStudy}
+        onCursorHover={handleCursorHover}
       />
     </div>
   );

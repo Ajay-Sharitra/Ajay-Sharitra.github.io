@@ -1,0 +1,96 @@
+/* Deliberate Mobile, Tablet & Hybrid Device Responsive System */
+
+@media (max-width: 1024px) {
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+@media (min-width: 1025px) {
+  .mobile-only {
+    display: none !important;
+  }
+}
+
+/* Disable custom cursor on touch/coarse pointer devices */
+@media (hover: none), (pointer: coarse) {
+  body,
+  a,
+  button,
+  [role="button"] {
+    cursor: auto !important;
+  }
+
+  .custom-cursor-layer {
+    display: none !important;
+  }
+}
+
+/* Safe-Area & Dynamic Viewport Utilities */
+.min-h-dvh-safe {
+  min-height: 100vh;
+  min-height: 100dvh;
+}
+
+.h-dvh-safe {
+  height: 100vh;
+  height: 100dvh;
+}
+
+.safe-top-pad {
+  padding-top: max(1rem, env(safe-area-inset-top, 0px));
+}
+
+.safe-bottom-pad {
+  padding-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Small Mobile Breakpoint (320px–359px): Prevent headline clipping & button overflow */
+@media (max-width: 359px) {
+  :root {
+    --text-mega: clamp(2.05rem, 10vw, 3.2rem);
+    --text-hero: clamp(1.9rem, 9.2vw, 2.6rem);
+    --text-h1: clamp(1.75rem, 8.5vw, 2.3rem);
+  }
+
+  .hero-word-inner {
+    letter-spacing: -0.02em;
+  }
+}
+
+/* Mobile Breakpoint (360px–599px) */
+@media (min-width: 360px) and (max-width: 599px) {
+  :root {
+    --text-mega: clamp(2.35rem, 10.5vw, 3.8rem);
+    --text-hero: clamp(2.1rem, 9.5vw, 3.3rem);
+    --text-h1: clamp(1.95rem, 8.2vw, 3.0rem);
+  }
+}
+
+/* Large Mobile / Small Tablet Breakpoint (600px–767px) */
+@media (min-width: 600px) and (max-width: 767px) {
+  :root {
+    --text-mega: clamp(3.0rem, 9.8vw, 5.2rem);
+    --text-hero: clamp(2.6rem, 8.2vw, 4.4rem);
+  }
+}
+
+/* Tablet Breakpoint (768px–1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  :root {
+    --text-mega: clamp(3.6rem, 9.5vw, 7.2rem);
+    --text-hero: clamp(3.0rem, 7.5vw, 5.8rem);
+  }
+}
+
+/* Reduced motion accessibility */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

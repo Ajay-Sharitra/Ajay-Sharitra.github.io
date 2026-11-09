@@ -1,88 +1,66 @@
-export interface ExperienceItem {
-  period: string;
-  role: string;
-  organization: string;
-  location: string;
-  description: string;
-  highlights: string[];
-}
-
-export interface SkillCategory {
-  title: string;
-  skills: string[];
-}
-
 export const PROFILE = {
-  name: 'AJAY SHARITRA .B',
-  title: 'NETWORK ENGINEER · SOFTWARE DEVELOPER',
+  name: 'AJAY SHARITRA',
+  fullName: 'AJAY SHARITRA .B',
+  headline: 'SOFTWARE. SYSTEMS. SECURITY.',
+  supportingStatement:
+    'Building software, engineering systems, exploring security and transforming technical ideas into practical solutions.',
+  heroSubtext:
+    'I build software, explore intelligent systems and work across infrastructure, automation and cybersecurity.',
+  role: 'SOFTWARE ENGINEER · SYSTEMS ARCHITECT · NETWORK & SECURITY ENGINEER',
+  degree: 'B.E. Computer Science & Engineering',
+  certification: 'CCNA Certified (Cisco ID Verified)',
   location: 'Tirunelveli, Tamil Nadu, India',
-  timezone: 'Asia/Kolkata',
   cityCode: 'TIRUNELVELI, IN',
-  availability: 'OPEN FOR DIRECT CONTRACTS & ARCHITECTURE',
-  yearsExperience: '3+ Years in IT',
-  credentials: ['CCNA Certified (Cisco ID Verified)', 'B.E. Computer Science & Engineering'],
-  
-  tagline: 'Building Software for Real People. Real Work.',
-  manifestoQuote: "Technology reached the boardrooms of Mumbai and Bangalore. It's time it reached the tea shop in Tirunelveli.",
-  
-  bio: [
-    "I am a Network Engineer and Software Developer based in Tirunelveli, Tamil Nadu. Rather than building speculative venture-backed startups or another layer of corporate abstraction, I run a grounded, neighbourhood software practice delivering high-utility tools for small businesses, contractors, retailers, and educational tutors.",
-    "My dual background bridges low-level network infrastructure (Cisco routing, switching, LAN architecture, firewall configuration) and pragmatic software engineering (Python, Flask, PySide6, TypeScript, SQLite, embedded POS devices). Whether provisioning an office network or deploying a custom financial ledger, I engineer tools that are robust, honest, and built to outlast trends."
+  timezone: 'Asia/Kolkata',
+  availability: 'OPEN FOR ENGINEERING ROLES, ARCHITECTURE & TECHNICAL COLLABORATION',
+  yearsExperience: '3+ Years in IT & Software Engineering',
+
+  manifestoQuote:
+    "Technology reached the boardrooms of Mumbai and Bangalore. It's time it reached the tea shop in Tirunelveli.",
+
+  aboutTitle: 'ENGINEERED WITH INTENTION.',
+  aboutLead:
+    'I am a Computer Science Engineering graduate, Software Developer, and CCNA-certified Network Engineer who approaches technology as a unified system—from packet-level infrastructure and security hardening to full-stack applications and neural network architectures.',
+  aboutParagraphs: [
+    'My work spans the complete technical spectrum: designing standalone desktop software (Day Soft) and multi-user financial platforms (LedgeSoft), supporting mission-critical institutional systems like NIC eOffice in R&D environments, and provisioning resilient Cisco network topologies.',
+    'Beyond production software and infrastructure, I am deeply driven by how intelligent systems and security mechanisms operate under the hood—experimenting with custom Large Language Models, Transformer Query-Key-Value (QKV) attention mechanisms in PyTorch, OSINT reconnaissance, and cryptographic auditing with Hashcat.',
+    'Whether I am architecting a relational database, hardening a firewall perimeter, or packaging a zero-dependency Python utility, my philosophy remains constant: build tools that are fast, honest, secure, and genuinely useful.'
   ],
 
-  stats: [
-    { label: 'YEARS IN IT', value: '3+' },
-    { label: 'NETWORKING', value: 'CCNA' },
-    { label: 'PRODUCTS LIVE', value: '03' },
-    { label: 'VC CAPITAL', value: '₹0 BOOTSTRAPPED' }
-  ],
-
-  layers: [
+  philosophies: [
     {
-      num: '01',
-      title: 'Software Products',
-      subtitle: 'Focused One-Time Licensed Tools',
-      description: 'Custom-built applications addressing specific industry gaps without monthly recurring traps. Tailored for contractors, retailers, and small businesses.',
-      examples: ['LedgeSoft (Construction P&L)', 'Hero Quarters (Team Workflow)', 'Day Soft (Offline Ledger)', 'ShopTrack (Kirana POS)']
+      index: '01',
+      title: 'Systems Over Surface',
+      desc: 'Great software is inseparable from the operating system, network topology, and database engine it runs on. Understanding the full stack—from TCP/IP packets to UI rendering—eliminates guesswork.'
     },
     {
-      num: '02',
-      title: 'Network & IT Infrastructure',
-      subtitle: 'Hands-on Engineering for Local Enterprises',
-      description: 'End-to-end network design, Wi-Fi heatmapping, structured cabling, router & switch setup, secure remote access, and on-premise hardware diagnostics.',
-      examples: ['Office LAN / WAN Deployment', 'Cisco Switch & VLAN Config', 'Firewall & VPN Security', 'Hardware Diagnostics']
+      index: '02',
+      title: 'Security by Design',
+      desc: 'From role-based access control (RBAC) and encrypted local SQLite ledgers to OSINT surface audits and firewall policies, security is engineered into the foundation rather than bolted on later.'
     },
     {
-      num: '03',
-      title: 'Annual Maintenance (AMC)',
-      subtitle: 'Predictable, On-Call Partnership',
-      description: 'Reliable yearly maintenance agreements covering automated data backups, emergency on-call technical visits, and priority WhatsApp troubleshooting.',
-      examples: ['Automated Local/Offsite Backups', 'Quarterly Health Audits', 'Guaranteed < 2hr WhatsApp Response', 'Firmware & OS Patches']
+      index: '03',
+      title: 'Practical Innovation',
+      desc: 'Whether exploring Transformer attention mechanisms in PyTorch or building offline-first desktop utilities, technical curiosity must translate into real, working solutions.'
     }
   ],
 
-  skills: [
-    {
-      title: 'NETWORKING & INFRASTRUCTURE',
-      skills: ['Cisco CCNA', 'VLANs & Subnetting', 'Routing Protocols (OSPF/EIGRP)', 'Switching & Spanning Tree', 'Network Security', 'Wi-Fi Architecture', 'Linux Server Admin']
-    },
-    {
-      title: 'SOFTWARE & SYSTEMS',
-      skills: ['Python 3', 'Flask / FastAPI', 'PySide6 / Qt Desktop', 'SQLite & PostgreSQL', 'TypeScript / JavaScript', 'React & TailwindCSS', 'RESTful API Architecture', 'ESC/POS Hardware Integration']
-    },
-    {
-      title: 'PHILOSOPHY & PRACTICES',
-      skills: ['Offline-First Systems', 'Zero-Bloat UI Design', 'RBAC Security Models', 'Local Data Sovereignty', 'Bilingual Software Localization', 'Direct Technical Client Support']
-    }
+  metrics: [
+    { value: '3+', label: 'YEARS IN IT & SYSTEMS', detail: 'Software, Infrastructure & Institutional Support' },
+    { value: 'CCNA', label: 'CISCO VERIFIED', detail: 'Routing, Switching, VLANs & Perimeter Security' },
+    { value: '06+', label: 'SYSTEMS & TOOLS BUILT', detail: 'Commercial Platforms & Open-Source Executables' },
+    { value: 'B.E.', label: 'COMPUTER SCIENCE', detail: 'Engineering Foundation in Systems & AI' }
   ],
 
   contacts: {
     email: 'ajaysharitra@gmail.com',
     primaryPhone: '+91 94880 01018',
     secondaryPhone: '+91 89401 49854',
-    whatsappUrl: 'https://wa.me/919488001018?text=Hello%20Ajay,%20I%20am%20reaching%20out%20regarding%20your%20software%20and%20networking%20services.',
-    github: 'https://github.com/ajay-sharitra',
+    whatsappUrl:
+      'https://wa.me/919488001018?text=Hello%20Ajay,%20I%20visited%20your%20portfolio%20and%20would%20like%20to%20connect.',
+    github: 'https://github.com/Ajay-Sharitra',
+    linkedin: 'https://www.linkedin.com/search/results/all/?keywords=Ajay%20Sharitra',
     portfolioUrl: 'https://ajay-sharitra.github.io/',
-    address: 'Tirunelveli, Tamil Nadu — 627001, India'
+    location: 'Tirunelveli, Tamil Nadu — 627001, India'
   }
 };
