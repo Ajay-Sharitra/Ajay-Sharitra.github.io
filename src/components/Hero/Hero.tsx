@@ -1,14 +1,23 @@
 import React, { useEffect, useRef } from 'react';
 import * as THREE from 'three';
 import { PROFILE } from '../../data/profile';
+import secretPortraitSrc from '../../assets/images/crimson-secret-portrait.png';
 import { gsap, ScrollTrigger } from '../../animations/gsapConfig';
+import {
+  playTriggerActivationFlash,
+  runHeroUnseenTransition
+} from '../../animations/secretExperienceAnimations';
 import { useReducedMotion } from '../../hooks/useReducedMotion';
+import './Hero.css';
 
 interface HeroProps {
   isReady: boolean;
   onExploreWork: () => void;
   onOpenContact: () => void;
   onCursorHover: (hovering: boolean, label?: string) => void;
+  isSecretOpen?: boolean;
+  onOpenSecret?: () => void;
+  onCloseSecret?: () => void;
 }
 
 const CROSSHAIR_ICON = (
@@ -24,17 +33,115 @@ export default function Hero({
   isReady,
   onExploreWork,
   onOpenContact,
-  onCursorHover
+  onCursorHover,
+  isSecretOpen = false,
+  onOpenSecret,
+  onCloseSecret
 }: HeroProps) {
   const sectionRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const ignitionBloomRef = useRef<HTMLDivElement>(null);
+  const lightSweepRef = useRef<HTMLDivElement>(null);
+
   const portraitWrapRef = useRef<HTMLDivElement>(null);
+  const portraitParallaxLayerRef = useRef<HTMLDivElement>(null);
   const portraitImgRef = useRef<HTMLImageElement>(null);
+  const unseenPortraitImgRef = useRef<HTMLImageElement>(null);
+
+  const mobileBasePortraitRef = useRef<HTMLImageElement>(null);
+  const mobileUnseenPortraitRef = useRef<HTMLImageElement>(null);
+
   const titleWordsRef = useRef<HTMLDivElement>(null);
   const introBoxRef = useRef<HTMLDivElement>(null);
   const rightIdentifiersRef = useRef<HTMLDivElement>(null);
   const ledgerCrosshairsRef = useRef<HTMLDivElement>(null);
+  const unseenBtnRef = useRef<HTMLButtonElement>(null);
+  const hasInitializedSecretRef = useRef(false);
+
   const prefersReducedMotion = useReducedMotion();
+
+  const handleToggleSecret = () => {
+    onCursorHover(false);
+    playTriggerActivationFlash(unseenBtnRef.current, prefersReducedMotion);
+    if (isSecretOpen) {
+      onCloseSecret?.();
+    } else {
+      onOpenSecret?.();
+    }
+  };
+
+  // Run dynamic in-place Hero transformation whenever isSecretOpen toggles
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    // On initial mount, if not in unseen mode, ensure unseen layers are hidden without re-running transition
+    if (!hasInitializedSecretRef.current) {
+      hasInitializedSecretRef.current = true;
+      if (!isSecretOpen) {
+        if (unseenPortraitImgRef.current) {
+          gsap.set(unseenPortraitImgRef.current, {
+            opacity: 0,
+            clipPath: 'circle(0% at 50% 36%)',
+            WebkitClipPath: 'circle(0% at 50% 36%)'
+          });
+        }
+        if (mobileUnseenPortraitRef.current) {
+          gsap.set(mobileUnseenPortraitRef.current, {
+            opacity: 0,
+            clipPath: 'circle(0% at 50% 42%)',
+            WebkitClipPath: 'circle(0% at 50% 42%)'
+          });
+        }
+        return;
+      }
+    }
+
+    const headlineWords = titleWordsRef.current
+      ? titleWordsRef.current.querySelectorAll('.hero-word-inner')
+      : [];
+    const introItems = introBoxRef.current
+      ? introBoxRef.current.querySelectorAll('.hero-intro-item')
+      : [];
+    const techIds = rightIdentifiersRef.current
+      ? rightIdentifiersRef.current.querySelectorAll('.hero-tech-id')
+      : [];
+
+    const tl = runHeroUnseenTransition(
+      isSecretOpen,
+      {
+        section: sectionRef.current,
+        ignitionBloom: ignitionBloomRef.current,
+        lightSweep: lightSweepRef.current,
+        desktopBasePortrait: portraitImgRef.current,
+        desktopUnseenPortrait: unseenPortraitImgRef.current,
+        mobileBasePortrait: mobileBasePortraitRef.current,
+        mobileUnseenPortrait: mobileUnseenPortraitRef.current,
+        headlineWords,
+        introItems,
+        techIds
+      },
+      {
+        reducedMotion: prefersReducedMotion,
+        isMobile: window.innerWidth < 768
+      }
+    );
+
+    return () => {
+      tl?.kill();
+    };
+  }, [isSecretOpen, prefersReducedMotion]);
+
+  // Allow Escape key to return to normal Hero state when Unseen mode is active
+  useEffect(() => {
+    if (!isSecretOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        onCloseSecret?.();
+      }
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [isSecretOpen, onCloseSecret]);
 
   // Three.js Subtle Crimson Technical Particle & Node Field with Adaptive Mobile Quality & Intersection Pause
   useEffect(() => {
@@ -161,7 +268,7 @@ export default function Hero({
 
     const ctx = gsap.context(() => {
       // Portrait reveal
-      if (portraitImgRef.current) {
+      if (portraitImgRef.current && !isSecretOpen) {
         gsap.fromTo(
           portraitImgRef.current,
           {
@@ -266,12 +373,12 @@ export default function Hero({
     };
   }, [isReady, prefersReducedMotion]);
 
-  // Subtle Mouse Parallax on Portrait (Desktop fine pointer only)
+  // Subtle Mouse Parallax on Portrait Layer (Desktop fine pointer only)
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
-    if (prefersReducedMotion || window.innerWidth < 1024 || !portraitImgRef.current) return;
+    if (prefersReducedMotion || window.innerWidth < 1024 || !portraitParallaxLayerRef.current) return;
     const xRatio = (e.clientX / window.innerWidth - 0.5) * 16;
     const yRatio = (e.clientY / window.innerHeight - 0.5) * 10;
-    gsap.to(portraitImgRef.current, {
+    gsap.to(portraitParallaxLayerRef.current, {
       x: xRatio,
       y: yRatio,
       duration: 0.75,
@@ -280,15 +387,32 @@ export default function Hero({
     });
   };
 
+  const disciplines = isSecretOpen
+    ? [
+        'OFFENSIVE & DEFENSIVE SECURITY',
+        'ADVERSARIAL LLM ARCHITECTURE',
+        'ZERO-TRUST NETWORK TOPOLOGY',
+        'KERNEL & BINARY SYSTEMS',
+        'COVERT INFRASTRUCTURE OPS'
+      ]
+    : [
+        'SOFTWARE ENGINEERING',
+        'IT INFRASTRUCTURE & NETWORKING',
+        'CYBERSECURITY & HARDENING',
+        'AI & LLM ARCHITECTURE',
+        'SYSTEMS AUTOMATION'
+      ];
+
   return (
     <section
       id="home"
       ref={sectionRef}
       onMouseMove={handleMouseMove}
-      className="relative w-full min-h-dvh-safe overflow-hidden flex flex-col justify-between bg-[#050505] select-none pt-20 sm:pt-24 pb-10 sm:pb-14"
+      className="relative w-full min-h-dvh-safe overflow-hidden flex flex-col justify-between bg-[#050505] select-none pt-20 sm:pt-24 pb-10 sm:pb-14 transition-colors duration-700"
       style={{
-        backgroundImage:
-          'radial-gradient(ellipse 75% 65% at 55% 42%, rgba(165, 4, 7, 0.36) 0%, rgba(75, 0, 0, 0.16) 48%, rgba(5, 5, 5, 1) 100%)'
+        backgroundImage: isSecretOpen
+          ? 'radial-gradient(ellipse 80% 70% at 52% 40%, rgba(214, 4, 7, 0.52) 0%, rgba(95, 0, 2, 0.28) 50%, rgba(4, 4, 4, 1) 100%)'
+          : 'radial-gradient(ellipse 75% 65% at 55% 42%, rgba(165, 4, 7, 0.36) 0%, rgba(75, 0, 0, 0.16) 48%, rgba(5, 5, 5, 1) 100%)'
       }}
     >
       {/* Subtle 3D Particle Canvas */}
@@ -297,28 +421,38 @@ export default function Hero({
         className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
       />
 
+      {/* In-Place Crimson Ignition Bloom & Laser Sweep */}
+      <div ref={ignitionBloomRef} className="hero-ignition-bloom" aria-hidden="true" />
+      <div ref={lightSweepRef} className="hero-light-sweep" aria-hidden="true" />
+
       {/* Background Kinetic Marquee Rail */}
       <div className="absolute inset-x-0 top-[44%] lg:top-1/2 -translate-y-1/2 z-[2] pointer-events-none overflow-hidden opacity-[0.12] lg:opacity-[0.14]">
         <div className="animate-marquee-rail flex items-center whitespace-nowrap">
           {[0, 1].map((idx) => (
             <div key={idx} className="flex items-center">
               <span className="font-display text-[clamp(4.5rem,18vw,19rem)] uppercase tracking-tight text-white mx-6 sm:mx-8 leading-none">
-                AJAY SHARITRA — SOFTWARE. SYSTEMS. SECURITY.
+                {isSecretOpen
+                  ? 'AJAY SHARITRA — PROTOCOL X-01 // UNSEEN IDENTITY'
+                  : 'AJAY SHARITRA — SOFTWARE. SYSTEMS. SECURITY.'}
               </span>
               <span className="font-serif-accent text-[clamp(4.5rem,18vw,19rem)] text-[#d60407] mx-6 sm:mx-8 leading-none">
-                ENGINEERED FOR IMPACT.
+                {isSecretOpen ? 'BEYOND THE SURFACE.' : 'ENGINEERED FOR IMPACT.'}
               </span>
             </div>
           ))}
         </div>
       </div>
 
-      {/* DESKTOP Central Crimson Portrait Composition (lg and above) */}
+      {/* DESKTOP Central Crimson Portrait Composition (lg and above) — Morphs In-Place */}
       <div
         ref={portraitWrapRef}
         className="hidden lg:flex lg:absolute lg:inset-0 z-[3] items-end justify-center pointer-events-none"
       >
-        <div className="relative w-full max-w-[960px] h-[88vh] flex items-end justify-center">
+        <div
+          ref={portraitParallaxLayerRef}
+          className="relative w-full max-w-[960px] h-[88vh] flex items-end justify-center will-change-transform"
+        >
+          {/* Base Hero Portrait */}
           <img
             ref={portraitImgRef}
             src="/assets/portraits/ajay-crimson-hero.jpg"
@@ -330,39 +464,69 @@ export default function Hero({
               WebkitMaskImage: 'linear-gradient(to bottom, black 72%, transparent 100%)'
             }}
           />
+
+          {/* Unseen X-Eyed Crimson Portrait Layered Directly Over Base Portrait */}
+          <img
+            ref={unseenPortraitImgRef}
+            src={secretPortraitSrc}
+            alt="Ajay Sharitra — Unseen Crimson X-Eyed Identity"
+            decoding="async"
+            className="absolute inset-0 w-full h-full object-contain object-bottom drop-shadow-[0_20px_85px_rgba(214,4,7,0.55)] opacity-0"
+            style={{
+              maskImage: 'linear-gradient(to bottom, black 74%, transparent 100%)',
+              WebkitMaskImage: 'linear-gradient(to bottom, black 74%, transparent 100%)'
+            }}
+          />
+
           <div className="absolute inset-x-0 bottom-0 h-44 bg-gradient-to-t from-[#050505] via-[#050505]/85 to-transparent pointer-events-none" />
         </div>
       </div>
 
       {/* Foreground Editorial Content Grid */}
       <div className="relative z-[10] max-w-[1600px] mx-auto w-full px-4 sm:px-6 md:px-12 flex-1 flex flex-col justify-between">
-        {/* MOBILE / TABLET DEDICATED PORTRAIT STAGE (Below lg) */}
-        <div className="lg:hidden relative w-full mt-2 mb-5 overflow-hidden border border-white/15 bg-[#0b0b0b]">
+        {/* MOBILE / TABLET DEDICATED PORTRAIT STAGE (Below lg) — Morphs In-Place */}
+        <div
+          className={`lg:hidden relative w-full mt-2 mb-5 overflow-hidden border transition-colors duration-500 bg-[#0b0b0b] ${
+            isSecretOpen ? 'border-[#d60407]/70 shadow-[0_0_35px_rgba(214,4,7,0.28)]' : 'border-white/15'
+          }`}
+        >
           <div className="relative aspect-[16/11] sm:aspect-[16/9] w-full overflow-hidden">
+            {/* Base Mobile Portrait */}
             <img
+              ref={mobileBasePortraitRef}
               src="/assets/portraits/ajay-crimson-hero.jpg"
               alt="Ajay Sharitra — Software, Systems & Security Engineer"
               fetchPriority="high"
               className="w-full h-full object-cover object-top"
             />
+
+            {/* Unseen Mobile Portrait Layered In-Place */}
+            <img
+              ref={mobileUnseenPortraitRef}
+              src={secretPortraitSrc}
+              alt="Ajay Sharitra — Unseen Crimson X-Eyed Identity"
+              decoding="async"
+              className="absolute inset-0 w-full h-full object-cover object-top opacity-0"
+            />
+
             <div className="absolute inset-0 bg-gradient-to-t from-[#050505] via-[#050505]/30 to-transparent" />
             <div className="absolute top-3 left-3 right-3 flex items-center justify-between">
               <div className="inline-flex items-center gap-2 px-2.5 py-1 bg-black/75 backdrop-blur-md border border-[#d60407]/50">
                 <span className="w-1.5 h-1.5 rounded-full bg-[#d60407] live-crimson-dot" />
                 <span className="font-mono-tech text-[9px] sm:text-[10px] tracking-[0.18em] uppercase text-[#f5f5f5]">
-                  {PROFILE.degree} · CCNA
+                  {isSecretOpen ? 'UNSEEN // PROTOCOL X-01' : `${PROFILE.degree} · CCNA`}
                 </span>
               </div>
               <span className="font-mono-tech text-[9px] tracking-[0.18em] uppercase px-2.5 py-1 bg-[#d60407] text-white">
-                TVL // IN
+                {isSecretOpen ? 'OPTIC // X' : 'TVL // IN'}
               </span>
             </div>
             <div className="absolute bottom-3 left-3 right-3 flex items-end justify-between">
               <span className="font-mono-tech text-[10px] tracking-[0.22em] uppercase text-[#d60407]">
-                {PROFILE.name} // PORTFOLIO
+                {isSecretOpen ? 'CRIMSON IDENTITY ACTIVE' : `${PROFILE.name} // PORTFOLIO`}
               </span>
               <span className="font-mono-tech text-[9px] tracking-[0.16em] uppercase text-white/75">
-                PYTHON · GO · JS · PYTORCH
+                {isSecretOpen ? 'BEYOND THE SURFACE' : 'PYTHON · GO · JS · PYTORCH'}
               </span>
             </div>
           </div>
@@ -375,16 +539,20 @@ export default function Hero({
             <div className="hero-intro-item hidden lg:inline-flex items-center gap-2.5 px-3 py-1 bg-[#d60407]/15 border border-[#d60407]/40">
               <span className="w-1.5 h-1.5 rounded-full bg-[#d60407] live-crimson-dot" />
               <span className="font-mono-tech text-[10px] tracking-[0.22em] uppercase text-[#f5f5f5]">
-                {PROFILE.degree} · CCNA
+                {isSecretOpen ? 'PROTOCOL X-01 // CRIMSON IDENTITY' : `${PROFILE.degree} · CCNA`}
               </span>
             </div>
 
             <p className="hero-intro-item text-sm sm:text-base md:text-lg text-[#f5f5f5]/90 font-normal leading-relaxed max-w-[42ch]">
-              {PROFILE.heroSubtext}
+              {isSecretOpen
+                ? 'Operating beneath the visible layer—where offensive security, neural attention mechanics, and resilient systems converge.'
+                : PROFILE.heroSubtext}
             </p>
 
             <p className="hero-intro-item font-mono-tech text-[11px] sm:text-xs text-white/60 leading-relaxed max-w-[44ch]">
-              {PROFILE.supportingStatement}
+              {isSecretOpen
+                ? 'Deconstructing complex architectures, auditing cryptographic surfaces, and engineering high-impact software.'
+                : PROFILE.supportingStatement}
             </p>
 
             <div className="hero-intro-item grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-3 pt-1 sm:pt-2">
@@ -405,6 +573,26 @@ export default function Hero({
               >
                 INITIATE CONTACT
               </button>
+              <button
+                ref={unseenBtnRef}
+                type="button"
+                onClick={handleToggleSecret}
+                onMouseEnter={() => onCursorHover(true, isSecretOpen ? 'RESTORE' : 'UNSEEN')}
+                onMouseLeave={() => onCursorHover(false)}
+                aria-label={
+                  isSecretOpen
+                    ? 'Restore Primary Hero Identity'
+                    : 'Activate Unseen Crimson Identity in Hero'
+                }
+                aria-pressed={isSecretOpen}
+                className={`hero-unseen-trigger w-full sm:w-auto ${isSecretOpen ? 'is-active' : ''}`}
+              >
+                <span className="hero-unseen-indicator" aria-hidden="true" />
+                <span>{isSecretOpen ? 'RESTORE HERO' : 'UNSEEN'}</span>
+                <span className="hero-unseen-x-mark" aria-hidden="true">
+                  ✕
+                </span>
+              </button>
             </div>
           </div>
 
@@ -416,30 +604,34 @@ export default function Hero({
             className="lg:col-span-4 flex flex-col lg:items-end justify-start lg:text-right space-y-1.5 sm:space-y-2 z-10 order-3"
           >
             <div className="hero-tech-id font-mono-tech text-[10px] tracking-[0.22em] sm:tracking-[0.25em] uppercase text-[#d60407] mb-1">
-              CORE DISCIPLINES // 01—05
+              {isSecretOpen ? 'UNSEEN VECTORS // X-01—X-05' : 'CORE DISCIPLINES // 01—05'}
             </div>
             <div className="flex flex-wrap lg:flex-col gap-1.5 sm:gap-2 lg:items-end">
-              <span className="hero-tech-id font-display text-xs sm:text-sm md:text-base tracking-[0.14em] sm:tracking-[0.16em] uppercase text-[#f5f5f5] px-2.5 py-1 lg:p-0 bg-white/[0.04] lg:bg-transparent border border-white/10 lg:border-none">
-                SOFTWARE ENGINEERING
-              </span>
-              <span className="hero-tech-id font-display text-xs sm:text-sm md:text-base tracking-[0.14em] sm:tracking-[0.16em] uppercase text-[#f5f5f5]/85 px-2.5 py-1 lg:p-0 bg-white/[0.04] lg:bg-transparent border border-white/10 lg:border-none">
-                IT INFRASTRUCTURE &amp; NETWORKING
-              </span>
-              <span className="hero-tech-id font-display text-xs sm:text-sm md:text-base tracking-[0.14em] sm:tracking-[0.16em] uppercase text-[#f5f5f5]/75 px-2.5 py-1 lg:p-0 bg-white/[0.04] lg:bg-transparent border border-white/10 lg:border-none">
-                CYBERSECURITY &amp; HARDENING
-              </span>
-              <span className="hero-tech-id font-display text-xs sm:text-sm md:text-base tracking-[0.14em] sm:tracking-[0.16em] uppercase text-[#f5f5f5]/65 px-2.5 py-1 lg:p-0 bg-white/[0.04] lg:bg-transparent border border-white/10 lg:border-none">
-                AI &amp; LLM ARCHITECTURE
-              </span>
-              <span className="hero-tech-id font-display text-xs sm:text-sm md:text-base tracking-[0.14em] sm:tracking-[0.16em] uppercase text-[#d60407] px-2.5 py-1 lg:p-0 bg-[#d60407]/10 lg:bg-transparent border border-[#d60407]/30 lg:border-none">
-                SYSTEMS AUTOMATION
-              </span>
+              {disciplines.map((item, idx) => {
+                const isLast = idx === disciplines.length - 1;
+                return (
+                  <span
+                    key={item}
+                    className={`hero-tech-id font-display text-xs sm:text-sm md:text-base tracking-[0.14em] sm:tracking-[0.16em] uppercase px-2.5 py-1 lg:p-0 border lg:border-none ${
+                      isLast
+                        ? 'text-[#d60407] bg-[#d60407]/10 lg:bg-transparent border-[#d60407]/30'
+                        : 'text-[#f5f5f5]/85 bg-white/[0.04] lg:bg-transparent border-white/10'
+                    }`}
+                  >
+                    {item}
+                  </span>
+                );
+              })}
             </div>
 
             {/* Floating Telemetry Coordinates */}
             <div className="hero-tech-id pt-4 hidden lg:flex flex-col lg:items-end font-mono-tech text-[10px] tracking-[0.2em] text-white/45 space-y-1">
-              <span>LOC // 08.7139° N, 77.7567° E</span>
-              <span>CERT // CISCO CCNA VERIFIED</span>
+              <span>
+                {isSecretOpen ? 'STATE // ALTERNATE VISUAL IDENTITY' : 'LOC // 08.7139° N, 77.7567° E'}
+              </span>
+              <span>
+                {isSecretOpen ? 'OPTIC // X-CRIMSON OVERRIDE ACTIVE' : 'CERT // CISCO CCNA VERIFIED'}
+              </span>
               <span>STACK // PYTHON · GO · JS · PYTORCH</span>
             </div>
           </div>
@@ -450,12 +642,14 @@ export default function Hero({
           <div className="hidden lg:flex flex-wrap items-baseline justify-between gap-4 border-b border-white/15 pb-5">
             <div className="overflow-hidden">
               <span className="hero-word-inner block font-mono-tech text-xs sm:text-sm tracking-[0.3em] uppercase text-[#d60407]">
-                {PROFILE.name} // PORTFOLIO
+                {isSecretOpen
+                  ? `${PROFILE.name} // UNSEEN PROTOCOL X-01`
+                  : `${PROFILE.name} // PORTFOLIO`}
               </span>
             </div>
             <div className="overflow-hidden">
               <span className="hero-word-inner block font-mono-tech text-[11px] tracking-[0.22em] uppercase text-white/60">
-                SCROLL TO DECONSTRUCT ↓
+                {isSecretOpen ? 'CLICK RESTORE HERO OR PRESS [ESC] ↑' : 'SCROLL TO DECONSTRUCT ↓'}
               </span>
             </div>
           </div>
@@ -463,17 +657,17 @@ export default function Hero({
           <h1 className="mt-1 lg:mt-4 flex flex-wrap items-baseline gap-x-3 sm:gap-x-6 lg:gap-x-8 gap-y-1 leading-[0.88] tracking-tight uppercase">
             <span className="overflow-hidden inline-block max-w-full">
               <span className="hero-word-inner inline-block font-display text-[clamp(2.1rem,9.2vw,8.5rem)] text-[#f5f5f5]">
-                SOFTWARE.
+                {isSecretOpen ? 'UNSEEN.' : 'SOFTWARE.'}
               </span>
             </span>
             <span className="overflow-hidden inline-block max-w-full">
               <span className="hero-word-inner inline-block font-serif-accent text-[clamp(2.35rem,9.8vw,9.2rem)] text-[#d60407] lowercase">
-                systems.
+                {isSecretOpen ? 'crimson.' : 'systems.'}
               </span>
             </span>
             <span className="overflow-hidden inline-block max-w-full">
               <span className="hero-word-inner inline-block font-display text-[clamp(2.1rem,9.2vw,8.5rem)] text-[#f5f5f5]">
-                SECURITY.
+                {isSecretOpen ? 'IDENTITY.' : 'SECURITY.'}
               </span>
             </span>
           </h1>
@@ -486,13 +680,13 @@ export default function Hero({
         className="relative z-[12] w-full border-t border-white/10 bg-[#050505]/85 backdrop-blur-md px-4 sm:px-6 md:px-12 py-2.5 sm:py-3 mt-6 flex items-center justify-between text-[10px] sm:text-xs tracking-[0.16em] sm:tracking-[0.22em] font-mono-tech uppercase text-white/75"
       >
         <span className="ledger-plus text-[#d60407] inline-flex">{CROSSHAIR_ICON}</span>
-        <span>SOFTWARE</span>
+        <span>{isSecretOpen ? 'UNSEEN' : 'SOFTWARE'}</span>
         <span className="ledger-plus text-white/60 inline-flex">{CROSSHAIR_ICON}</span>
-        <span className="hidden sm:inline">INFRASTRUCTURE</span>
+        <span className="hidden sm:inline">{isSecretOpen ? 'ADVERSARIAL' : 'INFRASTRUCTURE'}</span>
         <span className="ledger-plus text-[#d60407] hidden sm:inline-flex">{CROSSHAIR_ICON}</span>
-        <span>SECURITY</span>
+        <span>{isSecretOpen ? 'PROTOCOL X-01' : 'SECURITY'}</span>
         <span className="ledger-plus text-white/60 inline-flex">{CROSSHAIR_ICON}</span>
-        <span className="hidden md:inline">INTELLIGENCE</span>
+        <span className="hidden md:inline">{isSecretOpen ? 'X-CRIMSON' : 'INTELLIGENCE'}</span>
         <span className="ledger-plus text-[#d60407] hidden md:inline-flex">{CROSSHAIR_ICON}</span>
       </div>
     </section>

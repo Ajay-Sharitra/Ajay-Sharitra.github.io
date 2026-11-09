@@ -22,9 +22,11 @@ export default function App() {
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
   const [contactDrawerOpen, setContactDrawerOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [secretExperienceOpen, setSecretExperienceOpen] = useState(false);
 
   const cursorApiRef = useRef<CustomCursorHandle | null>(null);
 
+  // Only lock scrolling when a true modal/drawer overlay is open (Unseen mode is an in-place Hero state)
   const isOverlayLocked = selectedProject !== null || contactDrawerOpen || mobileMenuOpen;
   const { scrollTo } = useSmoothScroll(isOverlayLocked);
 
@@ -32,7 +34,7 @@ export default function App() {
     initGSAPConfig();
   }, []);
 
-  // Synchronize Case Study Overlay with URL Hash & Browser History (Back/Forward button support)
+  // Synchronize Case Study Overlay & Unseen Hero State with URL Hash & Browser History (Back/Forward button support)
   useEffect(() => {
     const syncFromLocation = () => {
       const hash = window.location.hash;
@@ -44,7 +46,13 @@ export default function App() {
           return;
         }
       }
+      if (hash === '#unseen') {
+        setSecretExperienceOpen(true);
+        setSelectedProject(null);
+        return;
+      }
       setSelectedProject(null);
+      setSecretExperienceOpen(false);
     };
 
     syncFromLocation();
@@ -54,6 +62,22 @@ export default function App() {
       window.removeEventListener('popstate', syncFromLocation);
       window.removeEventListener('hashchange', syncFromLocation);
     };
+  }, []);
+
+  const handleOpenSecretExperience = useCallback(() => {
+    setMobileMenuOpen(false);
+    setContactDrawerOpen(false);
+    setSecretExperienceOpen(true);
+    if (window.location.hash !== '#unseen') {
+      window.history.pushState({ unseen: true }, '', '#unseen');
+    }
+  }, []);
+
+  const handleCloseSecretExperience = useCallback(() => {
+    setSecretExperienceOpen(false);
+    if (window.location.hash === '#unseen') {
+      window.history.pushState(null, '', window.location.pathname);
+    }
   }, []);
 
   // Zero-re-render cursor hover dispatcher
@@ -165,6 +189,9 @@ export default function App() {
           onExploreWork={() => handleNavigateSection('work')}
           onOpenContact={() => setContactDrawerOpen(true)}
           onCursorHover={handleCursorHover}
+          isSecretOpen={secretExperienceOpen}
+          onOpenSecret={handleOpenSecretExperience}
+          onCloseSecret={handleCloseSecretExperience}
         />
 
         {/* SECTION 03 — About Me */}
